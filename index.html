@@ -32,17 +32,22 @@
     <div>
         <table>
             <tr>
-                <td>Name</td>
+                <td>First Name</td>
                 <td id="p_first_name"></td>
             </tr>
 
             <tr>
-                <td>Name</td>
+                <td>Last  Name</td>
                 <td id="p_last_name"></td>
             </tr>
             <tr>
                 <td>DOB</td>
                 <td id="p_dob"></td>
+            </tr>
+
+            <tr>
+                <td>Gender</td>
+                <td id="p_gender"></td>
             </tr>
         </table>
     </div>
@@ -51,9 +56,10 @@
     <script type="text/javascript">
         FHIR.oauth2.ready().then(function (client) {
             client.patient.read().then(function (pt) {
-                document.getElementById("p_first_name").innerHTML = pt.name[0];
+                document.getElementById("p_first_name").innerHTML = pt.name[0].given;
                 document.getElementById("p_last_name").innerHTML = pt.name[0].family;
                 document.getElementById("p_dob").innerHTML = pt.birthDate;
+                document.getElementById("p_gender").innerHTML = pt.gender
 
             });
 
