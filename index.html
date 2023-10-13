@@ -22,34 +22,36 @@
 
 
 <div class="container">
-    <div>
-        <table>
-            <tr>
-                <td>First Name</td>
-                <td id="p_first_name"></td>
-            </tr>
+    <h4>Demographics</h4>
+    <table>
+        <tr>
+            <td>First Name</td>
+            <td id="p_first_name"></td>
+        </tr>
 
-            <tr>
-                <td>Last Name</td>
-                <td id="p_last_name"></td>
-            </tr>
-            <tr>
-                <td>DOB</td>
-                <td id="p_dob"></td>
-            </tr>
+        <tr>
+            <td>Last Name</td>
+            <td id="p_last_name"></td>
+        </tr>
+        <tr>
+            <td>DOB</td>
+            <td id="p_dob"></td>
+        </tr>
 
-            <tr>
-                <td>Gender</td>
-                <td id="p_gender"></td>
-            </tr>
-        </table>
-    </div>
+        <tr>
+            <td>Gender</td>
+            <td id="p_gender"></td>
+        </tr>
+    </table>
     <hr>
     <h4 id="cond_head">Conditions</h4>
-
+    <hr>
     <h4 id="obsrv_head">Observations</h4>
     <div id="obrvs"></div>
-
+    <hr>
+    <h4 id="med_head">Medications</h4>
+    <div id="meds"></div>
+    <hr>
 
 
     <script type="text/javascript">
@@ -57,6 +59,7 @@
         get_meds();
         get_conds();
         get_obsrvs();
+        get_predictions();
     </script>
 </div>
 </body>

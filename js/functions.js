@@ -31,7 +31,26 @@ function get_meds() {
                 // Render the current patient's medications (or any error)
                 .then(
                     function (meds) {
-                        document.getElementById("meds").innerText = JSON.stringify(meds, null, 4);
+
+
+                        let table = document.createElement('table')
+                        for (var j = 0; j < meds.length; j++) {
+                            let row = table.insertRow();
+
+                            let row_no = row.insertCell();
+                            row_no.textContent = j;
+
+                            let code = row.insertCell();
+                            code.textContent = meds[j]["resource"]["medicationCodeableConcept"]["coding"][0]["code"];
+
+                            let name = row.insertCell();
+                            name.textContent = meds[j]["resource"]["medicationCodeableConcept"]["coding"][0]["display"];
+
+                            let date = row.insertCell();
+                            date.textContent = meds[j]["resource"]["authoredOn"];
+
+                        }
+                        document.getElementById("med_head").insertAdjacentElement("afterend", table)
                     },
                     function (error) {
                         document.getElementById("meds").innerText = error.stack;
@@ -110,11 +129,6 @@ function get_obsrvs() {
                     function (obrvs) {
 
 
-
-
-
-
-
                         let table = document.createElement('table')
                         for (var j = 0; j < obrvs.length; j++) {
                             let row = table.insertRow();
@@ -128,18 +142,16 @@ function get_obsrvs() {
                             let name = row.insertCell();
                             name.textContent = obrvs[j]["resource"]["code"]["coding"][0]["display"];
 
-                            // let date = row.insertCell();
-                            // date.textContent = conds[j]["resource"]["onsetDateTime"];
+                            let value = row.insertCell();
+
+                            if (obrvs[j]["resource"].hasOwnProperty('valueQuantity')) {
+                                value.textContent = obrvs[j]["resource"]["valueQuantity"]["value"];
+                            }
 
                         }
                         document.getElementById("obsrv_head").insertAdjacentElement("afterend", table)
 
 
-
-
-
-
-                        document.getElementById("obrvs").innerText = JSON.stringify(obrvs, null, 4);
                     },
                     function (error) {
                         document.getElementById("meds").innerText = error.stack;
@@ -149,4 +161,25 @@ function get_obsrvs() {
         })
 
     })
+}
+
+
+function get_predictions() {
+    fetch('http://127.0.0.1:5000')
+        .then(response => {
+            if (response.ok) {
+                return response.json(); // Parse the response data as JSON
+            } else {
+                throw new Error('API request failed');
+            }
+        })
+        .then(data => {
+            // Process the response data here
+            console.log(data); // Example: Logging the data to the console
+        })
+        .catch(error => {
+            // Handle any errors here
+            console.error(error); // Example: Logging the error to the console
+        });
+
 }
