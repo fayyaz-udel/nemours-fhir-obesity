@@ -1,3 +1,27 @@
+function get_preds() {
+
+    const data = {
+        "bmi": 20,
+        "weight": 150,
+        "height": 170,
+    };
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "http://localhost:4000");
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.send(JSON.stringify(data));
+    xhr.onload = function () {
+        if (xhr.status === 200) {
+            document.getElementById("preds").innerText = xhr.responseText;
+        } else {
+            console.log(xhr.statusText); //ERROR
+        }
+    };
+
+
+}
+
+
 function get_demographic() {
 
     FHIR.oauth2.ready().then(function (client) {
@@ -164,22 +188,6 @@ function get_obsrvs() {
 }
 
 
-function get_predictions() {
-    fetch('http://127.0.0.1:5000')
-        .then(response => {
-            if (response.ok) {
-                return response.json(); // Parse the response data as JSON
-            } else {
-                throw new Error('API request failed');
-            }
-        })
-        .then(data => {
-            // Process the response data here
-            console.log(data); // Example: Logging the data to the console
-        })
-        .catch(error => {
-            // Handle any errors here
-            console.error(error); // Example: Logging the error to the console
-        });
 
-}
+
+
