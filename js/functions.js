@@ -102,6 +102,7 @@ function get_conds() {
                     function (conds) {
                         let table = document.createElement('table')
                         for (var j = 0; j < conds.length; j++) {
+
                             let row = table.insertRow();
 
                             let row_no = row.insertCell();
@@ -155,6 +156,12 @@ function get_obsrvs() {
 
                         let table = document.createElement('table')
                         for (var j = 0; j < obrvs.length; j++) {
+
+
+                            if (!obrvs[j]["resource"]["code"]["coding"][0]["display"].includes("Body")) {
+                                continue;
+                            }
+
                             let row = table.insertRow();
 
                             let row_no = row.insertCell();
@@ -185,6 +192,31 @@ function get_obsrvs() {
         })
 
     })
+}
+
+
+function draw_chart() {
+    const ctx = document.getElementById('myChart');
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+            datasets: [{
+                label: '# of Votes',
+                data: [12, 19, 3, 5, 2, 3],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
 }
 
 
