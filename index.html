@@ -63,11 +63,29 @@
 
 
     <script type="text/javascript">
-        get_demographic();
-        get_meds();
+
+        get_demographic().then(function (pt) {
+            get_meds().then(function (med) {
+                get_conds().then(function (cond) {
+                    get_obsrvs().then(function (obsrv) {
+                        data = {
+                            'patient': pt,
+                            'medications': med,
+                            'conditions': cond,
+                            'observations': obsrv
+                        }
+                        get_preds(data);
+                    })
+                })
+            });
+
+
+        }).catch(function (error) {
+            console.error('An error occurred:', error);
+        });
         get_conds();
         get_obsrvs();
-        get_preds();
+
         draw_chart();
 
     </script>
