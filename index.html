@@ -63,30 +63,32 @@
 
 
     <script type="text/javascript">
-
-        get_demographic().then(function (pt) {
-            get_meds().then(function (med) {
-                get_conds().then(function (cond) {
-                    get_obsrvs().then(function (obsrv) {
-                        data = {
-                            'patient': pt,
-                            'medications': med,
-                            'conditions': cond,
-                            'observations': obsrv
-                        }
-                        get_preds(data);
+        async function main() {
+            get_demographic().then(function (pt) {
+                get_meds().then(function (med) {
+                    get_conds().then(function (cond) {
+                        get_obsrvs().then(async function (obsrv) {
+                            data = {
+                                'patient': pt,
+                                'medications': med,
+                                'conditions': cond,
+                                'observations': obsrv
+                            }
+                            anthropometic = await communicate_server(data);
+                            draw_anthropometric_chart(anthropometic);
+                        })
                     })
-                })
+                });
+
+
+            }).catch(function (error) {
+                console.error('An error occurred:', error);
             });
 
 
-        }).catch(function (error) {
-            console.error('An error occurred:', error);
-        });
-        get_conds();
-        get_obsrvs();
+        }
 
-        draw_chart();
+        main();
 
     </script>
 </div>

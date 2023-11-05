@@ -1,17 +1,20 @@
-function get_preds(data) {
-
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", "http://localhost:4000");
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.send(JSON.stringify(data, null, 4));
-    xhr.onload = function () {
-        if (xhr.status === 200) {
-            document.getElementById("preds").innerText = xhr.responseText;
-        } else {
-            console.log(xhr.statusText); //ERROR
-        }
-    };
-
+function communicate_server(data) {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "http://localhost:4000");
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                resolve(xhr.responseText); //SUCCESS
+            } else {
+                reject(new Error(xhr.statusText)); //ERROR
+            }
+        };
+        xhr.onerror = function () {
+            reject(new Error("Network error"));
+        };
+        xhr.send(JSON.stringify(data));
+    });
 }
 
 
@@ -28,8 +31,7 @@ function get_demographic() {
 
     }).catch(function (error) {
         console.error(error);
-        // Handle error or return a default value or promise rejection
-        throw error; // Rethrow to keep the promise chain in a rejected state
+        throw error;
     });
 }
 
@@ -41,40 +43,37 @@ function get_meds() {
                 resolveReferences: ["medicationReference"],
                 graph: true,
             })
-            .then(function (data) {
-                if (!data.entry || !data.entry.length) {
-                    throw new Error("No medications found for the selected patient");
-                }
-                return data.entry;
-            })
-            .then(function (meds) {
-                // Create and return the table instead of just assigning to out_med
-                let table = document.createElement('table')
-                for (var j = 0; j < meds.length; j++) {
-                    let row = table.insertRow();
+                .then(function (data) {
+                    if (!data.entry || !data.entry.length) {
+                        throw new Error("No medications found for the selected patient");
+                    }
+                    return data.entry;
+                })
+                .then(function (meds) {
+                    let table = document.createElement('table')
+                    for (var j = 0; j < meds.length; j++) {
+                        let row = table.insertRow();
 
-                    let row_no = row.insertCell();
-                    row_no.textContent = j;
+                        let row_no = row.insertCell();
+                        row_no.textContent = j;
 
-                    let code = row.insertCell();
-                    code.textContent = meds[j]["resource"]["medicationCodeableConcept"]["coding"][0]["code"];
+                        let code = row.insertCell();
+                        code.textContent = meds[j]["resource"]["medicationCodeableConcept"]["coding"][0]["code"];
 
-                    let name = row.insertCell();
-                    name.textContent = meds[j]["resource"]["medicationCodeableConcept"]["coding"][0]["display"];
+                        let name = row.insertCell();
+                        name.textContent = meds[j]["resource"]["medicationCodeableConcept"]["coding"][0]["display"];
 
-                    let date = row.insertCell();
-                    date.textContent = meds[j]["resource"]["authoredOn"];
-                }
-                document.getElementById("med_head").insertAdjacentElement("afterend", table);
+                        let date = row.insertCell();
+                        date.textContent = meds[j]["resource"]["authoredOn"];
+                    }
+                    document.getElementById("med_head").insertAdjacentElement("afterend", table);
 
-                // Return the medication data for further processing if needed
-                return meds;
-            });
+                    return meds;
+                });
         });
     }).catch(function (error) {
-        // Handle or display the error
         document.getElementById("meds").innerText = error.stack;
-        throw error; // Re-throw the error in case we have further chaining
+        throw error;
     });
 }
 
@@ -87,33 +86,33 @@ function get_conds() {
                 resolveReferences: ["conditionReference"],
                 graph: true,
             })
-            .then(function (data) {
-                if (!data.entry || !data.entry.length) {
-                    throw new Error("No conditions found for the selected patient");
-                }
-                return data.entry;
-            })
-            .then(function (conds) {
-                let table = document.createElement('table');
-                for (var j = 0; j < conds.length; j++) {
-                    let row = table.insertRow();
+                .then(function (data) {
+                    if (!data.entry || !data.entry.length) {
+                        throw new Error("No conditions found for the selected patient");
+                    }
+                    return data.entry;
+                })
+                .then(function (conds) {
+                    let table = document.createElement('table');
+                    for (var j = 0; j < conds.length; j++) {
+                        let row = table.insertRow();
 
-                    let row_no = row.insertCell();
-                    row_no.textContent = j;
+                        let row_no = row.insertCell();
+                        row_no.textContent = j;
 
-                    let code = row.insertCell();
-                    code.textContent = conds[j]["resource"]["code"]["coding"][0]["code"];
+                        let code = row.insertCell();
+                        code.textContent = conds[j]["resource"]["code"]["coding"][0]["code"];
 
-                    let name = row.insertCell();
-                    name.textContent = conds[j]["resource"]["code"]["coding"][0]["display"];
+                        let name = row.insertCell();
+                        name.textContent = conds[j]["resource"]["code"]["coding"][0]["display"];
 
-                    let date = row.insertCell();
-                    date.textContent = conds[j]["resource"]["onsetDateTime"];
-                }
-                document.getElementById("cond_head").insertAdjacentElement("afterend", table);
+                        let date = row.insertCell();
+                        date.textContent = conds[j]["resource"]["onsetDateTime"];
+                    }
+                    document.getElementById("cond_head").insertAdjacentElement("afterend", table);
 
-                return conds;
-            });
+                    return conds;
+                });
         });
     }).catch(function (error) {
         document.getElementById("conds").innerText = error.stack;
@@ -122,62 +121,75 @@ function get_conds() {
 }
 
 
-
 function get_obsrvs() {
     return FHIR.oauth2.ready().then(function (client) {
         return client.patient.read().then(function (pt) {
-            const patientId = pt.id; // Replace this with the correct way to get the patient's ID
+            const patientId = pt.id;
 
             return client.request(`/Observation?patient=${patientId}`, {
                 resolveReferences: ["medicationReference"],
                 graph: true,
             })
-            .then(function (data) {
-                if (!data.entry || !data.entry.length) {
-                    throw new Error("No observations found for the selected patient");
-                }
-                return data.entry;
-            })
-            .then(function (obrvs) {
-                // It might be better to simply return the observations here
-                // and do the DOM manipulation elsewhere.
-                return obrvs.filter(obrv =>
-                    obrv["resource"]["code"]["coding"][0]["display"].includes("Body"));
-            });
+                .then(function (data) {
+                    if (!data.entry || !data.entry.length) {
+                        throw new Error("No observations found for the selected patient");
+                    }
+                    return data.entry;
+                })
+                .then(function (obrvs) {
+                    let table = document.createElement('table');
+                    for (var j = 0; j < obrvs.length; j++) {
+                        if (!obrvs[j]["resource"]["code"]["coding"][0]["display"].includes("Body")) {
+                            continue;
+                        }
+                        let row = table.insertRow();
+
+                        let row_no = row.insertCell();
+                        row_no.textContent = j;
+
+                        let code = row.insertCell();
+                        code.textContent = obrvs[j]["resource"]["code"]["coding"][0]["code"];
+
+                        let name = row.insertCell();
+                        name.textContent = obrvs[j]["resource"]["code"]["coding"][0]["display"];
+
+                        let value = row.insertCell();
+                        value.textContent = obrvs[j]["resource"]["valueQuantity"]["value"].toFixed(2);
+
+                        let date = row.insertCell();
+                        date.textContent = obrvs[j]["resource"]["effectiveDateTime"];
+                    }
+                    document.getElementById("obsrv_head").insertAdjacentElement("afterend", table);
+
+                    return obrvs;
+                });
         });
     }).catch(function (error) {
-        document.getElementById("obsrvs").innerText = error.stack; // Make sure this ID matches your error display element
+        document.getElementById("obsrvs").innerText = error.stack;
         throw error;
     });
 }
 
-// Example usage:
-get_obsrvs().then(function (obrvs) {
-    // Do the DOM manipulation here with the filtered observations
-    console.log('Observations:', obrvs);
-}).catch(function (error) {
-    // Handle any errors here
-    console.error('An error occurred:', error);
-});
 
-
-function draw_chart() {
+function draw_anthropometric_chart(data) {
     const ctx = document.getElementById('myChart');
+    data = JSON.parse(data);
+    document.getElementById("preds").innerText = data['bmi_y'];
 
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+            labels: data['bmi_x'],
             datasets: [{
-                label: '# of Votes',
-                data: [12, 19, 3, 5, 2, 3],
+                label: 'BMI',
+                data: data['bmi_y'],
                 borderWidth: 1
             }]
         },
         options: {
             scales: {
                 y: {
-                    beginAtZero: true
+                    beginAtZero: false
                 }
             }
         }

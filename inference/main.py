@@ -1,14 +1,9 @@
 from math import expm1
 # import joblib
-import pandas as pd
+from utils import *
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
-import json
-from fhirclient.models.medicationrequest import MedicationRequest
-from fhirclient.models.patient import Patient
-from fhirclient.models.observation import Observation
-from fhirclient.models.bundle import Bundle
-from fhirclient.models.condition import Condition
+
 
 # from tensorflow import keras
 app = Flask(__name__)
@@ -21,25 +16,13 @@ cors = CORS(app)
 @cross_origin()
 def index():
     data = request.json
-    medication_list = []
-    observation_list = []
-    condition_list = []
-    patient = None
-    for medication in data['medications']:
-        medication_list.append(MedicationRequest(medication["resource"]))
-    for observation in data['observations']:
-        observation_list.append(Observation(observation["resource"]))
-    for condition in data['conditions']:
-        condition_list.append(Condition(condition["resource"]))
-    patient = Patient(data['patient'])
-    #########################################################################
-    for medication in medication_list:
-        print(medication.medicationCodeableConcept.coding[0].code)
+    prrocessed_data = process_input(data)
 
-    # df = pd.DataFrame(data, index=[0])
+    anthropometric_data = extract_anthropometric(prrocessed_data)
+    #########################################################################
     # prediction = model.predict(transformer.transform(df))
     predicted_bmi = 30  # expm1(prediction.flatten()[0])
-    return jsonify({"predicted bmi": str(predicted_bmi)})
+    return jsonify(anthropometric_data)
 
 
 if __name__ == '__main__':
