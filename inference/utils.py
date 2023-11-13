@@ -72,3 +72,7 @@ def extract_anthropometric(data):
     return {"height_x": height["age"].to_list(), "height_y": height["value"].to_list(),
             "weight_x": weight["age"].to_list(), "weight_y": weight["value"].to_list(),
             "bmi_x": bmi["age"].to_list(), "bmi_y": bmi["value"].to_list()}
+
+
+def extract_representations(prrocessed_data):
+    pass

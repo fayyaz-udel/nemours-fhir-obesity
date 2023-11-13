@@ -12,11 +12,14 @@ cors = CORS(app)
 
 # model = keras.models.load_model("assets/obesity_prediction_model.h5")
 # transformer = joblib.load("assets/data_transformer.joblib")
+
+
 @app.route("/", methods=["POST", "GET"])
 @cross_origin()
 def index():
     data = request.json
     prrocessed_data = process_input(data)
+    represantation_data = extract_representations(prrocessed_data)
 
     anthropometric_data = extract_anthropometric(prrocessed_data)
     #########################################################################
