@@ -1,9 +1,11 @@
 import pandas as pd
-from fhirclient.models.medicationrequest import MedicationRequest
-from fhirclient.models.patient import Patient
-from fhirclient.models.observation import Observation
-from fhirclient.models.bundle import Bundle
+import pickle
 from fhirclient.models.condition import Condition
+from fhirclient.models.medicationrequest import MedicationRequest
+from fhirclient.models.observation import Observation
+from fhirclient.models.patient import Patient
+
+person_id = 820427166
 
 
 def process_input(data):
@@ -74,5 +76,50 @@ def extract_anthropometric(data):
             "bmi_x": bmi["age"].to_list(), "bmi_y": bmi["value"].to_list()}
 
 
-def extract_representations(prrocessed_data):
-    pass
+def extract_representations(processed_data):
+    demo = extract_demo_data(processed_data)
+    enc = extract_enc_data(processed_data)
+    dec = extract_dec_data(processed_data)
+
+    return {"demo": demo, "enc": enc, "dec": dec}
+
+
+def extract_demo_data(data):
+    with open('./data/vocab/demoVocab', 'rb') as f:
+        demoVocab = pickle.load(f)
+
+    eth = data["patient"].extension[1].extension[0].valueCoding.display
+    race = data["patient"].extension[0].extension[0].valueCoding.display
+    sex = data["patient"].gender.capitalize()
+    payer = 'Medicaid/sCHIP' #TODO
+    coi = 'COI_4' #TODO
+
+    patient_dict = {}
+    patient_dict["person_id"] = person_id
+    patient_dict["Eth_dict"] = demoVocab.get(eth, 0)
+    patient_dict["Race_dict"] = demoVocab.get(race, 0)
+    patient_dict["Sex_dict"] = demoVocab.get(sex,0)
+    patient_dict["Payer_dict"] = demoVocab.get(payer,0)
+    patient_dict["COI_dict"] = demoVocab.get(coi,0)
+
+    df = pd.DataFrame(patient_dict, index=[0])
+
+    return df
+
+
+def extract_enc_data(processed_data):
+    # person_id	Age	value	feat_dict	age_dict
+
+    cols_name = ["person_id", "Age", "value", "feat_dict", "age_dict"]
+
+    df = pd.DataFrame(columns=cols_name)
+    return df
+
+
+def extract_dec_data(processed_data):
+    with open("./data/vocab/featList", "rb") as fp:
+        cols_name = pickle.load(fp)
+
+    df = pd.DataFrame(columns=cols_name)
+
+    return df

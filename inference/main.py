@@ -1,4 +1,6 @@
 from math import expm1
+
+from inference.util import inference
 # import joblib
 from utils import *
 from flask import Flask, jsonify, request
@@ -20,6 +22,9 @@ def index():
     data = request.json
     prrocessed_data = process_input(data)
     represantation_data = extract_representations(prrocessed_data)
+    inference_data = inference(represantation_data)
+
+
 
     anthropometric_data = extract_anthropometric(prrocessed_data)
     #########################################################################

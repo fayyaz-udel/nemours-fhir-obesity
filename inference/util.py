@@ -1,11 +1,22 @@
 import pandas as pd
 import torch
+import importlib
+import torch
+import mimic_model_sig_obs as model
+
+importlib.reload(model)
+
+TEST = True
 
 
-def encXY():
-    enc = pd.read_csv('./data/h/enc.csv', header=0)
+def encXY(data):
+    if TEST:
+        enc = pd.read_csv('./data/h/enc.csv', header=0)
+    else:
+        enc = data['enc']
+    demo = data['demo']
+
     enc_len = pd.DataFrame(enc[enc['value'] != '0'].groupby('person_id').size().reset_index(name='counts'))
-    demo = pd.read_csv('./data/h/demo.csv', header=0)
 
     # enc_ob.loc[enc_ob.value == 'Normal', 'label'] = 0
     # enc_ob.loc[enc_ob.value == 'Obesity', 'label'] = 2
@@ -55,13 +66,14 @@ def encXY():
     enc_demo = torch.cat((enc_demo, enc_coi), 1)
     enc_demo = enc_demo.type(torch.LongTensor)
 
-
     return enc_feat, enc_len, enc_age, enc_demo
 
 
-def decXY():
-
-    dec = pd.read_csv('./data/h/dec.csv', header=0)
+def decXY(data):
+    if TEST:
+        dec = pd.read_csv('./data/h/dec.csv', header=0)
+    else:
+        dec = data['dec']
 
     dec = dec.fillna(0)
     dec = dec.apply(pd.to_numeric)
@@ -74,3 +86,21 @@ def decXY():
 
     return dec_feat
 
+
+
+def inference(data):
+    net = torch.load('./saved_models/obsNew_4.tar')
+
+    enc_feat, enc_len, enc_age, enc_demo = encXY(data)
+    dec_feat = decXY(data)
+    obs_idx = 0
+    enc_feat, enc_len, enc_age, enc_demo, dec_feat = enc_feat[obs_idx], enc_len[obs_idx], enc_age[obs_idx], enc_demo[
+        obs_idx], dec_feat[obs_idx]
+
+    output, prob, disc_input, logits = net(False, False, enc_feat, enc_len, enc_age, enc_demo, dec_feat)
+
+    output_list = []
+    for i in range(0, len(prob)):
+        output_list.append(output[i].squeeze().data.cpu().numpy())
+
+    return output_list
