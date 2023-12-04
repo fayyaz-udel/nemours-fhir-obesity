@@ -1,5 +1,6 @@
 import pandas as pd
 import pickle
+import math
 from fhirclient.models.condition import Condition
 from fhirclient.models.medicationrequest import MedicationRequest
 from fhirclient.models.observation import Observation
@@ -51,11 +52,17 @@ def process_input(data):
              'date': condition.onsetDateTime.date}, ignore_index=True)
 
     ########################## Calculate Age ################################
+
     dob = pd.to_datetime(patient.birthDate.date, utc=True)
     for df in [medication_df, observation_df, condition_df]:
         df['date'] = pd.to_datetime(df['date'], utc=True)
-        df['age'] = (df['date'] - dob).dt.days / 365
+        df['age'] = (df['date'] - dob).dt.days / 30.4
+        df['age_dict'] = df['age'].apply(lambda x: math.ceil(x) if x <= 24 else math.ceil(x / 12) + 22)
+        df = df[df['age_dict'] <= 32]
         df.sort_values(by=['age'], inplace=True)
+    ########################## Map Concept Codes ################################
+    observation_df, condition_df, medication_df = map_concept_codes(observation_df, condition_df, medication_df)
+
 
     return {'medications': medication_df, 'observations': observation_df, 'conditions': condition_df,
             'patient': patient}
@@ -74,6 +81,38 @@ def extract_anthropometric(data):
     return {"height_x": height["age"].to_list(), "height_y": height["value"].to_list(),
             "weight_x": weight["age"].to_list(), "weight_y": weight["value"].to_list(),
             "bmi_x": bmi["age"].to_list(), "bmi_y": bmi["value"].to_list()}
+
+
+def map_concept_codes(obs_df, cond_df, med_df):
+    with open('./data/map/loinc2concept', 'rb') as f:
+        loinc2concept = pickle.load(f)
+    with open('./data/map/snomed2desc_feat', 'rb') as f:
+        snomed2desc_feat = pickle.load(f)
+    with open('./data/map/rxcode2conceptid', 'rb') as f:
+        rxcode2concept = pickle.load(f)
+    with open('./data/map/atc_map', 'rb') as f:
+        atc_map = pickle.load(f)
+    with open('./data/vocab/featVocab', 'rb') as f:
+        feat_vocab = pickle.load(f)
+    ############################### Map Medication Codes ################################
+    # 'system', 'code', 'display', 'date', 'age', 'age_dict'
+    med_df['concept_id'] = med_df['code'].apply(lambda x: rxcode2concept.get(str(x).strip(), -111))
+    med_df['atc_3_code'] = med_df['concept_id'].apply(lambda x: atc_map.get(str(x).strip(), -222))
+    med_df['feat_dict'] = med_df['atc_3_code'].apply(lambda x: feat_vocab.get(x, -333))
+    med_df = med_df[med_df['feat_dict'] != -333]
+    ############################### Map Observation Codes ################################
+    # 'system', 'code', 'display', 'value', 'unit', 'date', 'age', 'age_dict'
+    obs_df['concept_id'] = obs_df['code'].apply(lambda x: loinc2concept.get(str(x).strip(), -666))
+    obs_df = obs_df[obs_df['concept_id']!=-666]
+    # TODO
+    obs_df['feat_dict'] = obs_df['concept_id'].apply(lambda x: feat_vocab.get(str(x)+"_1", -777))
+    ############################### Map Conditions Codes ################################
+    # 'system', 'code', 'display', 'date', 'age', 'age_dict'
+    cond_df['feat'] = cond_df['code'].apply(lambda x: snomed2desc_feat.get(str(x).strip(), -444))
+    cond_df['feat_dict'] = cond_df['feat'].apply(lambda x: feat_vocab.get(str(x).strip(), -555))
+    cond_df = cond_df[cond_df['feat_dict'] != -555]
+
+    return obs_df, cond_df, med_df
 
 
 def extract_representations(processed_data):
