@@ -181,7 +181,7 @@ function get_obsrvs() {
 }
 
 
-function draw_anthropometric_chart(data) {
+function get_server_response(data) {
     data = JSON.parse(data);
 
     document.getElementById("moc_data").innerHTML = data['moc_data'];

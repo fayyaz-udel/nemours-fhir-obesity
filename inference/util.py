@@ -83,18 +83,23 @@ def process_input(data, map_dict):
     ########################## Calculate Age ################################
 
     dob = pd.to_datetime(patient.birthDate.date, utc=True)
-    for df in [medication_df, observation_df, condition_df]:
-        df['date'] = pd.to_datetime(df['date'], utc=True)
-        df['age'] = (df['date'] - dob).dt.days / 30.4
-        df['age_dict'] = df['age'].apply(lambda x: math.ceil(x) if x <= 24 else math.ceil(x / 12) + 22)
-        df = df[df['age_dict'] <= 32]
-        df = df.sort_values(by=['age'])
+    medication_df = add_age(medication_df, dob)
+    observation_df = add_age(observation_df, dob)
+    condition_df = add_age(condition_df, dob)
     ########################## Map Concept Codes ################################
-    observation_df, condition_df, medication_df = map_concept_codes(observation_df, condition_df, medication_df,
-                                                                    map_dict)
+    observation_df, condition_df, medication_df = map_concept_codes(observation_df, condition_df, medication_df, map_dict)
 
     return {'medications': medication_df, 'observations': observation_df, 'conditions': condition_df,
             'patient': patient, 'family_history': family_history_list, 'bmi': bmi_list}
+
+
+def add_age(df, dob):
+    df['date'] = pd.to_datetime(df['date'], utc=True)
+    df['age'] = (df['date'] - dob).dt.days / 30.4
+    df['age_dict'] = df['age'].apply(lambda x: math.ceil(x) if x <= 24 else math.ceil(x / 12) + 22)
+    df = df[df['age_dict'] <= 32]
+    df = df.sort_values(by=['age'])
+    return df
 
 
 def map_concept_codes(obs_df, cond_df, med_df, map_dict):
@@ -186,17 +191,14 @@ def extract_enc_data(processed_data):
 
     cond = processed_data['conditions']
     for index, row in cond.iterrows():
-        # df = df.append({"person_id": person_id, "Age": row['age'], "value": 1, "feat_dict": row['feat_dict'], "age_dict": row['age_dict']}, ignore_index=True)
         new_row = [person_id, row['age'], row['code'], row['feat_dict'], row['age_dict']]
         df = pd.concat([df, pd.DataFrame([new_row], columns=cols_name)], ignore_index=True)
     med = processed_data['medications']
     for index, row in med.iterrows():
-        # df = df.append({"person_id": person_id, "Age": row['age'], "value": 1, "feat_dict": row['feat_dict'], "age_dict": row['age_dict']}, ignore_index=True)
         new_row = [person_id, row['age'], row['code'], row['feat_dict'], row['age_dict']]
         df = pd.concat([df, pd.DataFrame([new_row], columns=cols_name)], ignore_index=True)
     obs = processed_data['observations']
     for index, row in obs.iterrows():
-        # df = df.append({"person_id": person_id, "Age": row['age'], "value": 1, "feat_dict": row['feat_dict'], "age_dict": row['age_dict']}, ignore_index=True)
         new_row = [person_id, row['age'], row['code'], row['feat_dict'], row['age_dict']]
         df = pd.concat([df, pd.DataFrame([new_row], columns=cols_name)], ignore_index=True)
 
@@ -313,9 +315,7 @@ def determine_observ_predict_windows(prrocessed_data):
         obser_max = age
     else:
         obser_max = -10
-    pred1, pred2, pred3 = obser_max + 1, obser_max + 2, obser_max + 3
-    print("Determining observation and prediction windows...", str(obser_max))
-    return {"obser_max": obser_max, "pred1": pred1, "pred2": pred2, "pred3": pred3}
+    return {"obser_max": obser_max}
 
 
 def load_models():
@@ -354,25 +354,18 @@ def extract_anthropometric_data(data):
 
     observation_df['age'] = observation_df['age'].round(0)
     observation_df['value'] = observation_df['value'].round(1)
+
     observation_df.sort_values(by=['age'], inplace=True)
 
-    # height = observation_df[observation_df['code'] == '8302-2'][['age', 'value']]
-    # weight = observation_df[observation_df['code'] == '29463-7'][['age', 'value']]
     bmi = observation_df[observation_df['code'] == '39156-5'][['age', 'value']]
 
     return {"bmi_x": bmi["age"].to_list(), "bmi_y": bmi["value"].to_list()}
-    # "height_x": height["age"].to_list(), "height_y": height["value"].to_list(), "weight_x": weight["age"].to_list(), "weight_y": weight["value"].to_list(),
 
 
 ########################################################################################################################
-TEST = False
-
 
 def encXY(data):
-    if TEST:
-        enc = pd.read_csv('./data/h/enc.csv', header=0)
-    else:
-        enc = data['enc']
+    enc = data['enc']
     demo = data['demo']
 
     enc_len = pd.DataFrame(enc[enc['value'] != '0'].groupby('person_id').size().reset_index(name='counts'))
@@ -429,10 +422,7 @@ def encXY(data):
 
 
 def decXY(data):
-    if TEST:
-        dec = pd.read_csv('./data/h/dec.csv', header=0)
-    else:
-        dec = data['dec']
+    dec = data['dec']
 
     dec = dec.fillna(0)
     dec = dec.apply(pd.to_numeric)
@@ -454,9 +444,7 @@ def inference(data, models, obser_pred_wins):
         enc_feat, enc_len, enc_age, enc_demo = encXY(data)
         dec_feat = decXY(data)
         obs_idx = 0
-        enc_feat, enc_len, enc_age, enc_demo, dec_feat = enc_feat[obs_idx], enc_len[obs_idx], enc_age[obs_idx], \
-        enc_demo[
-            obs_idx], dec_feat[obs_idx]
+        enc_feat, enc_len, enc_age, enc_demo, dec_feat = enc_feat[obs_idx], enc_len[obs_idx], enc_age[obs_idx],enc_demo[obs_idx], dec_feat[obs_idx]
 
         output, prob, disc_input, logits = net(False, False, enc_feat, enc_len, enc_age, enc_demo, dec_feat)
 
