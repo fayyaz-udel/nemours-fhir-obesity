@@ -29,7 +29,7 @@ def index():
     inference_data = inference(represantation_data, models, obser_pred_wins)
 
     anthropometric_data = extract_anthropometric_data(prrocessed_data)
-    ehr_history = extract_ehr_history(prrocessed_data, obser_pred_wins)
+    ehr_history = extract_ehr_history(prrocessed_data)
 
     response_dict = {**anthropometric_data, **inference_data, **ehr_history}
     #########################################################################

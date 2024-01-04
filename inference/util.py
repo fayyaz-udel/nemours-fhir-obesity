@@ -112,25 +112,22 @@ def map_concept_codes(obs_df, cond_df, med_df, map_dict):
 
     ############################### Map Medication Codes ################################
     # 'system', 'code', 'display', 'date', 'age', 'age_dict'
-    if med_df.shape[0] > 0:
-        med_df['concept_id'] = med_df['code'].apply(lambda x: rxcode2concept.get(str(x).strip(), -111))
-        med_df['atc_3_code'] = med_df['concept_id'].apply(lambda x: atc_map.get(str(x).strip(), -222))
-        med_df['feat_dict'] = med_df['atc_3_code'].apply(lambda x: feat_vocab.get(x, -333))
-        med_df = med_df[med_df['feat_dict'] != -333]
+    med_df['concept_id'] = med_df['code'].apply(lambda x: rxcode2concept.get(str(x).strip(), -111))
+    med_df['atc_3_code'] = med_df['concept_id'].apply(lambda x: atc_map.get(str(x).strip(), -222))
+    med_df['feat_dict'] = med_df['atc_3_code'].apply(lambda x: feat_vocab.get(x, -333))
+    med_df = med_df[med_df['feat_dict'] != -333]
     ############################### Map Observation Codes ################################
     # 'system', 'code', 'display', 'value', 'unit', 'date', 'age', 'age_dict'
-    if obs_df.shape[0] > 0:
-        obs_df['concept_id'] = obs_df['code'].apply(lambda x: loinc2concept.get(str(x).strip(), -666))
-        obs_df = obs_df[obs_df['concept_id'] != -666]
-
-        obs_df = obs_df.assign(quartile=obs_df.apply(lambda x: calc_q(x.concept_id, x.value, meas_q), axis=1))
-        obs_df = obs_df.assign(feat_dict=obs_df.apply(lambda x: feat_vocab.get(x.concept_id + "_" + x.quartile, -777), axis=1))
+    obs_df['concept_id'] = obs_df['code'].apply(lambda x: loinc2concept.get(str(x).strip(), -666))
+    obs_df = obs_df[obs_df['concept_id'] != -666]
+    obs_df['quartile'] = obs_df.apply(lambda x: calc_q(x.concept_id, x.value, meas_q), axis=1)
+    obs_df['feat_dict'] = obs_df.apply(lambda x: feat_vocab.get(x.concept_id + "_" + x.quartile, -777), axis=1)
     ############################### Map Conditions Codes ################################
     # 'system', 'code', 'display', 'date', 'age', 'age_dict'
-    if cond_df.shape[0] > 0:
-        cond_df['feat'] = cond_df['code'].apply(lambda x: snomed2desc.get(str(x).strip(), -444))
-        cond_df['feat_dict'] = cond_df['feat'].apply(lambda x: feat_vocab.get(str(x).strip(), -555))
-        cond_df = cond_df[cond_df['feat_dict'] != -555]
+    cond_df['feat'] = cond_df['code'].apply(lambda x: snomed2desc.get(str(x).strip(), -444))
+    cond_df['feat_dict'] = cond_df['feat'].apply(lambda x: feat_vocab.get(str(x).strip(), -555))
+    cond_df = cond_df[cond_df['feat_dict'] != -555]
+
 
     return obs_df, cond_df, med_df
 
@@ -331,7 +328,7 @@ def load_models():
     return models
 
 
-def extract_ehr_history(prrocessed_data, obser_pred_wins):
+def extract_ehr_history(prrocessed_data):
     m = prrocessed_data['medications']
     m['Type'] = 'Medication'
     o = prrocessed_data['observations']
