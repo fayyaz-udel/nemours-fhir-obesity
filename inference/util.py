@@ -6,7 +6,7 @@ import mimic_model_sig_obs as model
 
 importlib.reload(model)
 
-TEST = True
+TEST = False
 
 
 def encXY(data):
@@ -34,14 +34,14 @@ def encXY(data):
 
     # Reshape to 3-D
     # print(enc_feat.shape)
-    enc_feat = torch.tensor(enc_feat)
+    enc_feat = torch.tensor(enc_feat.astype(int))
     enc_feat = torch.reshape(enc_feat, (1, -1))
     enc_feat = enc_feat.type(torch.LongTensor)
 
     enc_len = torch.tensor(enc_len)
     enc_len = enc_len.type(torch.LongTensor)
 
-    enc_age = torch.tensor(enc_age)
+    enc_age = torch.tensor(enc_age.astype(int))
     enc_age = torch.reshape(enc_age, (1, -1))
     enc_age = enc_age.type(torch.LongTensor)
     ##########################################################################
@@ -82,14 +82,17 @@ def decXY(data):
     dec_feat = dec.iloc[:, 2:].values
 
     dec_feat = torch.tensor(dec_feat)
-    dec_feat = torch.reshape(dec_feat, (1, 8, dec_feat.shape[1]))
+    dec_feat = torch.reshape(dec_feat, (1, dec_feat.shape[0], dec_feat.shape[1]))
 
     return dec_feat
 
 
+def inference(data, models, obser_pred_wins):
 
-def inference(data):
-    net = torch.load('./saved_models/obsNew_4.tar')
+    net = models.get(obser_pred_wins["obser_max"], None)
+    if net is None:
+        return {'prob': [" "," "," "," "], 'time': [" "," "," "," "]}
+
 
     enc_feat, enc_len, enc_age, enc_demo = encXY(data)
     dec_feat = decXY(data)
@@ -99,8 +102,10 @@ def inference(data):
 
     output, prob, disc_input, logits = net(False, False, enc_feat, enc_len, enc_age, enc_demo, dec_feat)
 
-    output_list = []
+    output_prob_list = []
+    output_time_list = []
     for i in range(0, len(prob)):
-        output_list.append(output[i].squeeze().data.cpu().numpy())
+        output_prob_list.append(float(prob[i].squeeze()[1].data.cpu().numpy()))
+        output_time_list.append(obser_pred_wins["obser_max"] + i+1)
 
-    return output_list
+    return {'prob': output_prob_list, 'time': output_time_list}

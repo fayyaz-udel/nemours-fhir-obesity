@@ -106,7 +106,6 @@ class EncDec2(nn.Module):
 
     def forward(self, visualize_embed, find_contri, enc_feat, enc_len, enc_age, enc_demo, dec_feat):
 
-
         enc_feat = enc_feat.unsqueeze(0)
         enc_len = enc_len.unsqueeze(0)
         enc_age = enc_age.unsqueeze(0)
@@ -121,41 +120,23 @@ class EncDec2(nn.Module):
             return emb
 
         contri = torch.cat((enc_feat.unsqueeze(2), enc_age.unsqueeze(2)), 2)
-        # print("contri",contri.shape)
-        # print(contri[0])
-        #         print("Enc featEmbed",contri.shape)
-        #         print("Enc featEmbed",contri[0])
+
         enc_feat = self.emb_feat(enc_feat)
         enc_age = self.emb_age(enc_age)
         enc_demo = self.emb_demo(enc_demo)
-        #         print("Enc featEmbed",enc_feat.shape)
-        #         print("Enc ageEmbed",enc_age.shape)
 
         code_output, code_h_n, code_c_n = self.enc(enc_feat, enc_len, enc_age)
-        # print("code_output",code_output.shape)
-        # print("code_output_n",code_output_n.shape)
-        # print("========================")
 
         # ===========DECODER======================
-        #         print(dec_feat.shape)
-        idx = torch.count_nonzero(dec_feat, dim=2)
-        idx = idx.unsqueeze(2)
-        idx = idx.repeat(1, 1, self.embed_size)
-        #         print(idx.shape)
         dec_feat = self.emb_feat(dec_feat)
-        #         print(dec_feat.shape)
         dec_feat = torch.sum(dec_feat, 2)
-        #         print(dec_feat.shape)
-        #         dec_feat=torch.div(dec_feat,idx)
-        #         print(dec_feat.shape)
-
-        #         print("Dec featEmbed",dec_feat.shape)
-        #         print("Dec LabelEmbed",dec_labels.shape)
 
         if find_contri:
-            dec_output, dec_prob, disc_input, kl_input, all_contri = self.dec(find_contri, contri, dec_feat, code_output, code_h_n, code_c_n, enc_demo)
+            dec_output, dec_prob, disc_input, kl_input, all_contri = self.dec(find_contri, contri, dec_feat,
+                                                                              code_output, code_h_n, code_c_n, enc_demo)
         else:
-            dec_output, dec_prob, disc_input, kl_input = self.dec(find_contri, contri, dec_feat, code_output, code_h_n, code_c_n, enc_demo)
+            dec_output, dec_prob, disc_input, kl_input = self.dec(find_contri, contri, dec_feat, code_output, code_h_n,
+                                                                  code_c_n, enc_demo)
 
         kl_input = torch.tensor(kl_input)
         #         print(len(disc_input))
@@ -387,7 +368,9 @@ class Decoder2(nn.Module):
 
         # self.fc_pool=nn.Linear(self.rnn_size, args.labels, False)
         # self.rnn_cell = nn.GRUCell(self.embed_size*2, self.rnn_size)
-        self.linears = nn.ModuleList([nn.Linear((2 * self.rnn_size) + 5 * int(self.embed_size / 2) + 4 * int(self.embed_size), 2 * (args.latent_size)) for i in range(args.time)])
+        self.linears = nn.ModuleList([nn.Linear(
+            (2 * self.rnn_size) + 5 * int(self.embed_size / 2) + 4 * int(self.embed_size), 2 * (args.latent_size)) for i
+                                      in range(args.time)])
         # +1*int(self.embed_size)
         self.linearsMed = nn.ModuleList([nn.Linear(2 * (args.latent_size), args.latent_size) for i in range(args.time)])
         # self.regression = nn.Linear((2*self.rnn_size)+12, args.latent_size)
@@ -404,7 +387,6 @@ class Decoder2(nn.Module):
 
     def forward(self, find_contri, contri, featEmbed, encoder_outputs, h_n, c_n, enc_demo):
 
-
         h_n = h_n.unsqueeze(0)
         c_n = c_n.unsqueeze(0)
 
@@ -413,55 +395,36 @@ class Decoder2(nn.Module):
         disc_input = []
         dec_prob = []
         for t in range(args.time):
-            # print("===============",t,"======================")
-            # predict bmi
 
-            #                 print("h_n",h_n.shape)
-            # print("encoder_outputs",encoder_outputs.shape)
-            # encoder_outputs = torch.cat((encoder_outputs, enc_demo), dim =1)
-            # print("encoder_outputs",encoder_outputs.shape)
-            # encoder_outputs=self.drop(encoder_outputs)
             a = self.attn(encoder_outputs)
             #                 print("a",a.shape)
             if (find_contri) and (t == 2):
                 all_contri = self.attention(contri, a)
             a = a.unsqueeze(1)
-            #                 print("a",a.shape)
-            #                 print("attn",a[0,0,0:5])
-            #                 print("encoder_outputs",encoder_outputs[0,0:5,:])
 
-            #         print("fc_w",fc_w.shape)
             weighted = torch.bmm(a, encoder_outputs)
             #                 print("weighted",weighted[0,0,:])
             #                 print("weighted",weighted.shape)
             weighted = weighted.permute(1, 0, 2)
             weighted = weighted.squeeze()
             weighted = weighted.unsqueeze(0)
-            # print("weighted",weighted.shape)
 
-            # print("h_n",h_n.shape)
-            # print("dmeo",enc_demo.shape)
             reg_input = torch.cat((h_n, weighted), dim=1)
             #                 print(reg_input.shape)
             reg_input = torch.cat((reg_input, enc_demo), dim=1)
-            #                 print(reg_input.shape)
-            #                 print(featEmbed[:,0,:].shape)
-            reg_input = torch.cat((reg_input, featEmbed[:, 0, :]), dim=1)
-            reg_input = torch.cat((reg_input, featEmbed[:, 1, :]), dim=1)
-            reg_input = torch.cat((reg_input, featEmbed[:, 2, :]), dim=1)
-            reg_input = torch.cat((reg_input, featEmbed[:, 3, :]), dim=1)
-            #                 print(reg_input.shape)
+
+            for i in range(0, featEmbed.shape[1]):
+                reg_input = torch.cat((reg_input, featEmbed[:, i, :]), dim=1)
+
             bmi_h = self.linears[t](reg_input)
             bmi_h = self.leaky[t](bmi_h)
-            bmi_h = self.linearsMed[t](bmi_h)
+            if hasattr(self, "linearsMed"):
+                bmi_h = self.linearsMed[t](bmi_h)
             bmi_h = self.linearsLast[t](bmi_h)
             bmi_prob = torch.sigmoid(bmi_h)
             bmi_prob_non = (1 - bmi_prob[:, 0]).unsqueeze(1)
             bmi_prob = torch.cat((bmi_prob_non, bmi_prob), axis=1)
-            #                 print("bmi_prob",bmi_prob.shape)
-            #                 bmi_prob=torch.max(bmi_label,dim=1).values
-            #                 print(bmi_prob[0:10])
-            #                 print(bmi_prob_non[0:10])
+
             bmi_label = torch.argmax(bmi_prob, dim=1)
             dec_output.append(bmi_label)
             # print("bmi_label",bmi_label.shape)
@@ -626,10 +589,3 @@ class DemoEmbed(nn.Module):
         # demoEmbed=self.fc2(demoEmbed)
         # print(demoEmbed.shape)
         return demoEmbed
-
-
-
-
-
-
-

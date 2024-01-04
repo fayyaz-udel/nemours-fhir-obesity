@@ -25,7 +25,11 @@ function get_demographic() {
             document.getElementById("p_last_name").innerHTML = pt.name[0].family;
             document.getElementById("p_dob").innerHTML = pt.birthDate;
             document.getElementById("p_gender").innerHTML = pt.gender;
-            // Return the patient object to the next .then() in the chain
+            document.getElementById("p_ethnicity").innerHTML = pt.extension[1].extension[0].valueCoding.display;
+
+            document.getElementById("p_race").innerHTML = pt.extension[0].extension[0].valueCoding.display;
+            console.log("Hello, world!!!!");
+            console.log(pt.extension[1].extension[0].valueCoding.display);
             return pt;
         });
 
@@ -54,8 +58,8 @@ function get_meds() {
                     for (var j = 0; j < meds.length; j++) {
                         let row = table.insertRow();
 
-                        let row_no = row.insertCell();
-                        row_no.textContent = j;
+                        let date = row.insertCell();
+                        date.textContent = meds[j]["resource"]["authoredOn"];
 
                         let code = row.insertCell();
                         code.textContent = meds[j]["resource"]["medicationCodeableConcept"]["coding"][0]["code"];
@@ -63,10 +67,8 @@ function get_meds() {
                         let name = row.insertCell();
                         name.textContent = meds[j]["resource"]["medicationCodeableConcept"]["coding"][0]["display"];
 
-                        let date = row.insertCell();
-                        date.textContent = meds[j]["resource"]["authoredOn"];
                     }
-                    document.getElementById("med_head").insertAdjacentElement("afterend", table);
+                    document.getElementById("meds").insertAdjacentElement("afterend", table);
 
                     return meds;
                 });
@@ -97,8 +99,8 @@ function get_conds() {
                     for (var j = 0; j < conds.length; j++) {
                         let row = table.insertRow();
 
-                        let row_no = row.insertCell();
-                        row_no.textContent = j;
+                        let date = row.insertCell();
+                        date.textContent = conds[j]["resource"]["onsetDateTime"];
 
                         let code = row.insertCell();
                         code.textContent = conds[j]["resource"]["code"]["coding"][0]["code"];
@@ -106,10 +108,8 @@ function get_conds() {
                         let name = row.insertCell();
                         name.textContent = conds[j]["resource"]["code"]["coding"][0]["display"];
 
-                        let date = row.insertCell();
-                        date.textContent = conds[j]["resource"]["onsetDateTime"];
                     }
-                    document.getElementById("cond_head").insertAdjacentElement("afterend", table);
+                    document.getElementById("conds").insertAdjacentElement("afterend", table);
 
                     return conds;
                 });
@@ -144,6 +144,9 @@ function get_obsrvs() {
                         }
                         let row = table.insertRow();
 
+                        let date = row.insertCell();
+                        date.textContent = obrvs[j]["resource"]["effectiveDateTime"];
+
                         let row_no = row.insertCell();
                         row_no.textContent = j;
 
@@ -156,10 +159,8 @@ function get_obsrvs() {
                         let value = row.insertCell();
                         value.textContent = obrvs[j]["resource"]["valueQuantity"]["value"].toFixed(2);
 
-                        let date = row.insertCell();
-                        date.textContent = obrvs[j]["resource"]["effectiveDateTime"];
                     }
-                    document.getElementById("obsrv_head").insertAdjacentElement("afterend", table);
+                    document.getElementById("obsrvs").insertAdjacentElement("afterend", table);
 
                     return obrvs;
                 });
@@ -172,11 +173,34 @@ function get_obsrvs() {
 
 
 function draw_anthropometric_chart(data) {
-    const ctx = document.getElementById('myChart');
     data = JSON.parse(data);
-    document.getElementById("preds").innerText = data['bmi_y'];
 
-    new Chart(ctx, {
+    document.getElementById("moc_data").innerHTML = data['moc_data'];
+
+
+    let table = document.createElement('table')
+
+    let row = table.insertRow();
+    let time = row.insertCell();
+    time.textContent = "Age (years)";
+    let prob = row.insertCell();
+    prob.textContent = "Probability of Obesity";
+
+    for (var j = 0; j < data['time'].length; j++) {
+        let row = table.insertRow();
+
+        let time = row.insertCell();
+        time.textContent = data['time'][j];
+
+        let prob = row.insertCell();
+        prob.textContent = data['prob'][j];
+
+    }
+    document.getElementById("preds").insertAdjacentElement("afterend", table);
+
+
+    const bmiChartCtx = document.getElementById('bmiChart');
+    new Chart(bmiChartCtx, {
         type: 'line',
         data: {
             labels: data['bmi_x'],
@@ -188,12 +212,88 @@ function draw_anthropometric_chart(data) {
         },
         options: {
             scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Age (months)',
+                        font:
+                            {
+                                size: 18  // Adjust the font size as needed
+                            }
+                    },
+                    ticks: {
+                        font: {
+                            size: 18  // Adjust the tick font size as needed
+                        }
+                    }
+                },
                 y: {
+                    title: {
+                        display: true,
+                        text: 'BMI (kg/m2)',
+                        font:
+                            {
+                                size: 18  // Adjust the font size as needed
+                            }
+                    },
+                    ticks: {
+                        font: {
+                            size: 18  // Adjust the tick font size as needed
+                        }
+                    },
+                    suggestedMax: 40,
+                    suggestedMin: 10,
                     beginAtZero: false
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false  // Hides the dataset label
                 }
             }
         }
     });
+
+
+    // const heightChartCtx = document.getElementById('heightChart');
+    // new Chart(heightChartCtx, {
+    //     type: 'line',
+    //     data: {
+    //         labels: data['height_x'],
+    //         datasets: [{
+    //             label: 'Height',
+    //             data: data['height_y'],
+    //             borderWidth: 1
+    //         }]
+    //     },
+    //     options: {
+    //         scales: {
+    //             y: {
+    //                 beginAtZero: false
+    //             }
+    //         }
+    //     }
+    // });
+    //
+    // const weightChartCtx = document.getElementById('weightChart');
+    // new Chart(weightChartCtx, {
+    //     type: 'line',
+    //     data: {
+    //         labels: data['weight_x'],
+    //         datasets: [{
+    //             label: 'Weight',
+    //             data: data['weight_y'],
+    //             borderWidth: 1
+    //         }]
+    //     },
+    //     options: {
+    //         scales: {
+    //             y: {
+    //                 beginAtZero: false
+    //             }
+    //         }
+    //     }
+    // });
 
 }
 
