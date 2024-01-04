@@ -97,7 +97,7 @@ def add_age(df, dob):
     df['date'] = pd.to_datetime(df['date'], utc=True)
     df['age'] = (df['date'] - dob).dt.days / 30.4
     df['age_dict'] = df['age'].apply(lambda x: math.ceil(x) if x <= 24 else math.ceil(x / 12) + 22)
-    df = df[df['age_dict'] <= 32]
+    # df = df[df['age_dict'] <= 32] # TODO
     df = df.sort_values(by=['age'])
     return df
 
@@ -120,8 +120,10 @@ def map_concept_codes(obs_df, cond_df, med_df, map_dict):
     # 'system', 'code', 'display', 'value', 'unit', 'date', 'age', 'age_dict'
     obs_df['concept_id'] = obs_df['code'].apply(lambda x: loinc2concept.get(str(x).strip(), -666))
     obs_df = obs_df[obs_df['concept_id'] != -666]
-    obs_df['quartile'] = obs_df.apply(lambda x: calc_q(x.concept_id, x.value, meas_q), axis=1)
-    obs_df['feat_dict'] = obs_df.apply(lambda x: feat_vocab.get(x.concept_id + "_" + x.quartile, -777), axis=1)
+    obs_df.loc[:,'quartile'] = obs_df.apply(lambda x: calc_q(x.concept_id, x.value, meas_q), axis=1)
+    obs_df.loc[:,'range_code'] = obs_df['concept_id'].astype(str) + "_" + obs_df['quartile'].astype(str)
+    obs_df.loc[:,'feat_dict'] = obs_df['range_code'].map(feat_vocab)
+    obs_df = obs_df.drop(['range_code'], axis=1)
     ############################### Map Conditions Codes ################################
     # 'system', 'code', 'display', 'date', 'age', 'age_dict'
     cond_df['feat'] = cond_df['code'].apply(lambda x: snomed2desc.get(str(x).strip(), -444))
