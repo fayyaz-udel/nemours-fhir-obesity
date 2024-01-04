@@ -48,12 +48,15 @@ function get_meds() {
                 graph: true,
             })
                 .then(function (data) {
-                    if (!data.entry || !data.entry.length) {
-                        throw new Error("No medications found for the selected patient");
-                    }
                     return data.entry;
                 })
                 .then(function (meds) {
+                    if (!meds) {
+                        return null;
+                    }
+                    if (!meds.length) {
+                        return null;
+                    }
                     let table = document.createElement('table')
                     for (var j = 0; j < meds.length; j++) {
                         let row = table.insertRow();
@@ -89,12 +92,15 @@ function get_conds() {
                 graph: true,
             })
                 .then(function (data) {
-                    if (!data.entry || !data.entry.length) {
-                        throw new Error("No conditions found for the selected patient");
-                    }
                     return data.entry;
                 })
                 .then(function (conds) {
+                    if (!conds) {
+                        return null;
+                    }
+                    if (!conds.length) {
+                        return null;
+                    }
                     let table = document.createElement('table');
                     for (var j = 0; j < conds.length; j++) {
                         let row = table.insertRow();
@@ -131,12 +137,15 @@ function get_obsrvs() {
                 graph: true,
             })
                 .then(function (data) {
-                    if (!data.entry || !data.entry.length) {
-                        throw new Error("No observations found for the selected patient");
-                    }
                     return data.entry;
                 })
                 .then(function (obrvs) {
+                    if (!obrvs) {
+                        return null;
+                    }
+                    if (!obrvs.length) {
+                        return null;
+                    }
                     let table = document.createElement('table');
                     for (var j = 0; j < obrvs.length; j++) {
                         if (!obrvs[j]["resource"]["code"]["coding"][0]["display"].includes("Body")) {
@@ -176,27 +185,7 @@ function draw_anthropometric_chart(data) {
     data = JSON.parse(data);
 
     document.getElementById("moc_data").innerHTML = data['moc_data'];
-
-
-    let table = document.createElement('table')
-
-    let row = table.insertRow();
-    let time = row.insertCell();
-    time.textContent = "Age (years)";
-    let prob = row.insertCell();
-    prob.textContent = "Probability of Obesity";
-
-    for (var j = 0; j < data['time'].length; j++) {
-        let row = table.insertRow();
-
-        let time = row.insertCell();
-        time.textContent = data['time'][j];
-
-        let prob = row.insertCell();
-        prob.textContent = data['prob'][j];
-
-    }
-    document.getElementById("preds").insertAdjacentElement("afterend", table);
+    document.getElementById("preds").innerHTML = data['preds'];
 
 
     const bmiChartCtx = document.getElementById('bmiChart');
@@ -253,47 +242,6 @@ function draw_anthropometric_chart(data) {
             }
         }
     });
-
-
-    // const heightChartCtx = document.getElementById('heightChart');
-    // new Chart(heightChartCtx, {
-    //     type: 'line',
-    //     data: {
-    //         labels: data['height_x'],
-    //         datasets: [{
-    //             label: 'Height',
-    //             data: data['height_y'],
-    //             borderWidth: 1
-    //         }]
-    //     },
-    //     options: {
-    //         scales: {
-    //             y: {
-    //                 beginAtZero: false
-    //             }
-    //         }
-    //     }
-    // });
-    //
-    // const weightChartCtx = document.getElementById('weightChart');
-    // new Chart(weightChartCtx, {
-    //     type: 'line',
-    //     data: {
-    //         labels: data['weight_x'],
-    //         datasets: [{
-    //             label: 'Weight',
-    //             data: data['weight_y'],
-    //             borderWidth: 1
-    //         }]
-    //     },
-    //     options: {
-    //         scales: {
-    //             y: {
-    //                 beginAtZero: false
-    //             }
-    //         }
-    //     }
-    // });
 
 }
 

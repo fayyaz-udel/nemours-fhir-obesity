@@ -1,3 +1,6 @@
+import warnings
+
+warnings.simplefilter(action='ignore', category=FutureWarning)
 import pandas as pd
 import pickle
 import math
@@ -20,40 +23,42 @@ def process_input(data, map_dict):
     family_history_list = []
     bmi_list = []
 
-    for medication in data['medications']:
-        medication_list.append(MedicationRequest(medication["resource"]))
-    for observation in data['observations']:
-        observation_list.append(Observation(observation["resource"]))
-    for condition in data['conditions']:
-        condition_list.append(Condition(condition["resource"]))
+    if data['medications']:
+        for medication in data['medications']:
+            medication_list.append(MedicationRequest(medication["resource"]))
+    if data['observations']:
+        for observation in data['observations']:
+            observation_list.append(Observation(observation["resource"]))
+    if data['conditions']:
+        for condition in data['conditions']:
+            condition_list.append(Condition(condition["resource"]))
     patient = Patient(data['patient'])
-    #########################################################################
-    medication_df = pd.DataFrame(
-        columns=['system', 'code', 'display', 'date'])
-    for medication in medication_list:
-        medication_df = medication_df._append(
-            {'system': medication.medicationCodeableConcept.coding[0].system,
-             'code': medication.medicationCodeableConcept.coding[0].code,
-             'display': medication.medicationCodeableConcept.coding[0].display,
-             'date': medication.authoredOn.date}, ignore_index=True)
-
+    ####################################################################################################################
+    medication_df = pd.DataFrame(columns=['system', 'code', 'display', 'date'])
+    for idx, medication in enumerate(medication_list):
+        curr = pd.DataFrame({'system': medication.medicationCodeableConcept.coding[0].system,
+                             'code': medication.medicationCodeableConcept.coding[0].code,
+                             'display': medication.medicationCodeableConcept.coding[0].display,
+                             'date': medication.authoredOn.date}, index=[idx])
+        medication_df = pd.concat([medication_df, curr], ignore_index=True)
+    ####################################################################################################################
     observation_df = pd.DataFrame(columns=['system', 'code', 'display', 'value', 'unit', 'date'])
-    for observation in observation_list:
-        observation_df = observation_df._append(
-            {'system': observation.code.coding[0].system,
-             'code': observation.code.coding[0].code,
-             'display': observation.code.coding[0].display,
-             'value': observation.valueQuantity.value if observation.valueQuantity else None,
-             'unit': observation.valueQuantity.unit if observation.valueQuantity else None,
-             'date': observation.effectiveDateTime.date}, ignore_index=True)
-
+    for idx, observation in enumerate(observation_list):
+        curr = pd.DataFrame({'system': observation.code.coding[0].system,
+                             'code': observation.code.coding[0].code,
+                             'display': observation.code.coding[0].display,
+                             'value': observation.valueQuantity.value if observation.valueQuantity else None,
+                             'unit': observation.valueQuantity.unit if observation.valueQuantity else None,
+                             'date': observation.effectiveDateTime.date}, index=[idx])
+        observation_df = pd.concat([observation_df, curr], ignore_index=True)
+    ####################################################################################################################
     condition_df = pd.DataFrame(columns=['system', 'code', 'display', 'date'])
-    for condition in condition_list:
-        condition_df = condition_df._append(
-            {'system': condition.code.coding[0].system,
-             'code': condition.code.coding[0].code,
-             'display': condition.code.coding[0].display,
-             'date': condition.onsetDateTime.date}, ignore_index=True)
+    for idx, condition in enumerate(condition_list):
+        curr = pd.DataFrame({'system': condition.code.coding[0].system,
+                             'code': condition.code.coding[0].code,
+                             'display': condition.code.coding[0].display,
+                             'date': condition.onsetDateTime.date}, index=[idx])
+        condition_df = pd.concat([condition_df, curr], ignore_index=True)
 
     ################# Calculate BMI based on Height&Weight ######################
     height = observation_df[observation_df['code'] == '8302-2'][['date', 'value']]
@@ -70,8 +75,6 @@ def process_input(data, map_dict):
     observation_df = pd.concat([bmi, observation_df], ignore_index=True)
     observation_df.drop_duplicates(subset=['value', 'code', 'date'], inplace=True)
 
-
-
     # TODO: FAMILY HISTORY
     # TODO: BMI --> maybe it need to be placed somewhere else
     ########################## Calculate Age ################################
@@ -82,7 +85,7 @@ def process_input(data, map_dict):
         df['age'] = (df['date'] - dob).dt.days / 30.4
         df['age_dict'] = df['age'].apply(lambda x: math.ceil(x) if x <= 24 else math.ceil(x / 12) + 22)
         df = df[df['age_dict'] <= 32]
-        df.sort_values(by=['age'], inplace=True)
+        df = df.sort_values(by=['age'])
     ########################## Map Concept Codes ################################
     observation_df, condition_df, medication_df = map_concept_codes(observation_df, condition_df, medication_df,
                                                                     map_dict)
@@ -110,8 +113,8 @@ def map_concept_codes(obs_df, cond_df, med_df, map_dict):
     obs_df['concept_id'] = obs_df['code'].apply(lambda x: loinc2concept.get(str(x).strip(), -666))
     obs_df = obs_df[obs_df['concept_id'] != -666]
 
-    obs_df['quartile'] = obs_df.apply(lambda x: calc_q(x.concept_id, x.value, meas_q), axis=1)
-    obs_df['feat_dict'] = obs_df.apply(lambda x: feat_vocab.get(x.concept_id + "_" + x.quartile, -777), axis=1)
+    obs_df = obs_df.assign(quartile=obs_df.apply(lambda x: calc_q(x.concept_id, x.value, meas_q), axis=1))
+    obs_df = obs_df.assign(feat_dict=obs_df.apply(lambda x: feat_vocab.get(x.concept_id + "_" + x.quartile, -777), axis=1))
     ############################### Map Conditions Codes ################################
     # 'system', 'code', 'display', 'date', 'age', 'age_dict'
     cond_df['feat'] = cond_df['code'].apply(lambda x: snomed2desc.get(str(x).strip(), -444))

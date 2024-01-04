@@ -88,24 +88,24 @@ def decXY(data):
 
 
 def inference(data, models, obser_pred_wins):
-
     net = models.get(obser_pred_wins["obser_max"], None)
     if net is None:
-        return {'prob': [" "," "," "," "], 'time': [" "," "," "," "]}
+        preds =  "No model available to predict for patients at this age."
+    else:
+        enc_feat, enc_len, enc_age, enc_demo = encXY(data)
+        dec_feat = decXY(data)
+        obs_idx = 0
+        enc_feat, enc_len, enc_age, enc_demo, dec_feat = enc_feat[obs_idx], enc_len[obs_idx], enc_age[obs_idx], enc_demo[
+            obs_idx], dec_feat[obs_idx]
 
+        output, prob, disc_input, logits = net(False, False, enc_feat, enc_len, enc_age, enc_demo, dec_feat)
 
-    enc_feat, enc_len, enc_age, enc_demo = encXY(data)
-    dec_feat = decXY(data)
-    obs_idx = 0
-    enc_feat, enc_len, enc_age, enc_demo, dec_feat = enc_feat[obs_idx], enc_len[obs_idx], enc_age[obs_idx], enc_demo[
-        obs_idx], dec_feat[obs_idx]
+        output_prob_list = []
+        output_time_list = []
+        for i in range(0, len(prob)):
+            output_prob_list.append(float(prob[i].squeeze()[1].data.cpu().numpy()))
+            output_time_list.append(obser_pred_wins["obser_max"] + i + 1)
 
-    output, prob, disc_input, logits = net(False, False, enc_feat, enc_len, enc_age, enc_demo, dec_feat)
+        preds = pd.DataFrame({'Age (years)': output_time_list, 'Probability': output_prob_list}).to_html()
 
-    output_prob_list = []
-    output_time_list = []
-    for i in range(0, len(prob)):
-        output_prob_list.append(float(prob[i].squeeze()[1].data.cpu().numpy()))
-        output_time_list.append(obser_pred_wins["obser_max"] + i+1)
-
-    return {'prob': output_prob_list, 'time': output_time_list}
+    return {'preds': preds}
