@@ -24,8 +24,14 @@ models = load_models()
 def index():
     data = request.json
     prrocessed_data = process_input(data, map_dict)
+    prrocessed_data = map_concept_codes(prrocessed_data, map_dict)
     obser_pred_wins = determine_observ_predict_windows(prrocessed_data)  # Determine observation and prediction windows
     represantation_data = extract_representations(prrocessed_data, map_dict, obser_pred_wins)
+
+    # represantation_data['dec'].to_csv('dec.csv')
+    # represantation_data['enc'].to_csv('enc.csv')
+    # represantation_data['demo'].to_csv('demo.csv')
+
     inference_data = inference(represantation_data, models, obser_pred_wins)
 
     anthropometric_data = extract_anthropometric_data(prrocessed_data)

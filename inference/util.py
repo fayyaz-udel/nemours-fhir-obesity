@@ -27,8 +27,6 @@ def process_input(data, map_dict):
     medication_list = []
     observation_list = []
     condition_list = []
-    family_history_list = []
-    bmi_list = []
 
     if data['medications']:
         for medication in data['medications']:
@@ -67,6 +65,9 @@ def process_input(data, map_dict):
                              'date': condition.onsetDateTime.date}, index=[idx])
         condition_df = pd.concat([condition_df, curr], ignore_index=True)
 
+    #################  split BMI% form other selected observatiions #############
+    bmi_df = observation_df[observation_df['code'] == '39156-5']
+    observation_df = observation_df[observation_df['code'] != '39156-5']
     ################# Calculate BMI based on Height&Weight ######################
     height = observation_df[observation_df['code'] == '8302-2'][['date', 'value']]
     weight = observation_df[observation_df['code'] == '29463-7'][['date', 'value']]
@@ -79,23 +80,21 @@ def process_input(data, map_dict):
     bmi['unit'] = 'kg/m2'
     bmi = bmi[['system', 'code', 'display', 'value', 'unit', 'date']]
 
-    observation_df = pd.concat([bmi, observation_df], ignore_index=True)
-    observation_df.drop_duplicates(subset=['value', 'code', 'date'], inplace=True)
+    bmi_df = pd.concat([bmi, bmi_df], ignore_index=True)
+    bmi_df.drop_duplicates(subset=['value', 'code', 'date'], inplace=True)
     add_bmi_range(height, weight, observation_df, map_dict)
 
     # TODO: FAMILY HISTORY
-    # TODO: BMI --> maybe it need to be placed somewhere else
     ########################## Calculate Age ################################
 
     dob = pd.to_datetime(patient.birthDate.date, utc=True)
     medication_df = add_age(medication_df, dob)
     observation_df = add_age(observation_df, dob)
     condition_df = add_age(condition_df, dob)
-    ########################## Map Concept Codes ################################
-    observation_df, condition_df, medication_df = map_concept_codes(observation_df, condition_df, medication_df, map_dict)
+    bmi_df = add_age(bmi_df, dob)
 
     return {'medications': medication_df, 'observations': observation_df, 'conditions': condition_df,
-            'patient': patient, 'family_history': family_history_list, 'bmi': bmi_list}
+            'patient': patient, 'family_history': None, 'bmi': bmi_df}
 
 
 def add_age(df, dob):
@@ -107,7 +106,7 @@ def add_age(df, dob):
     return df
 
 
-def map_concept_codes(obs_df, cond_df, med_df, map_dict):
+def map_concept_codes(prrocessed_data, map_dict):
     loinc2concept = map_dict["loinc2concept"]
     snomed2desc = map_dict["snomed2desc"]
     rxcode2concept = map_dict["rxcode2concept"]
@@ -115,6 +114,10 @@ def map_concept_codes(obs_df, cond_df, med_df, map_dict):
     feat_vocab = map_dict["feat_vocab"]
     meas_q = map_dict["meas_quartiles"]
 
+    obs_df = prrocessed_data['observations']
+    cond_df = prrocessed_data['conditions']
+    med_df = prrocessed_data['medications']
+    bmi_df = prrocessed_data['bmi']
     ############################### Map Medication Codes ################################
     # 'system', 'code', 'display', 'date', 'age', 'age_dict'
     med_df['concept_id'] = med_df['code'].apply(lambda x: rxcode2concept.get(str(x).strip(), -111))
@@ -125,18 +128,23 @@ def map_concept_codes(obs_df, cond_df, med_df, map_dict):
     # 'system', 'code', 'display', 'value', 'unit', 'date', 'age', 'age_dict'
     obs_df['concept_id'] = obs_df['code'].apply(lambda x: loinc2concept.get(str(x).strip(), -666))
     obs_df = obs_df[obs_df['concept_id'] != -666]
-    obs_df.loc[:,'quartile'] = obs_df.apply(lambda x: calc_q(x.concept_id, x.value, meas_q), axis=1)
-    obs_df.loc[:,'range_code'] = obs_df['concept_id'].astype(str) + "_" + obs_df['quartile'].astype(str)
-    obs_df.loc[:,'feat_dict'] = obs_df['range_code'].map(feat_vocab)
+    obs_df.loc[:, 'quartile'] = obs_df.apply(lambda x: calc_q(x.concept_id, x.value, meas_q), axis=1)
+    obs_df.loc[:, 'range_code'] = obs_df['concept_id'].astype(str) + "_" + obs_df['quartile'].astype(str)
+    obs_df.loc[:, 'feat_dict'] = obs_df['range_code'].map(feat_vocab)
     obs_df = obs_df.drop(['range_code'], axis=1)
     ############################### Map Conditions Codes ################################
     # 'system', 'code', 'display', 'date', 'age', 'age_dict'
     cond_df['feat'] = cond_df['code'].apply(lambda x: snomed2desc.get(str(x).strip(), -444))
     cond_df['feat_dict'] = cond_df['feat'].apply(lambda x: feat_vocab.get(str(x).strip(), -555))
     cond_df = cond_df[cond_df['feat_dict'] != -555]
+    ############################### Map BMIp Codes ################################
+    bmi_df['feat_dict'] = bmi_df['code'].apply(lambda x: feat_vocab.get(str(x).strip(), 144))
 
-
-    return obs_df, cond_df, med_df
+    prrocessed_data['observations'] = obs_df
+    prrocessed_data['conditions'] = cond_df
+    prrocessed_data['medications'] = med_df
+    prrocessed_data['bmi'] = bmi_df
+    return prrocessed_data
 
 
 def extract_representations(processed_data, map_dict, obser_pred_wins):
@@ -147,9 +155,9 @@ def extract_representations(processed_data, map_dict, obser_pred_wins):
     return {"demo": demo, "enc": enc, "dec": dec}
 
 
-def extract_demo_data(data):
-    with open('./data/vocab/demoVocab', 'rb') as f:
-        demoVocab = pickle.load(f)
+def extract_demo_data(data, map_dict):
+    demoVocab = map_dict["demo_vocab"]
+
 
     ### Mehak used race/eth vice versa wrongly
     # Eth_label_list = ['NI', 'White', 'Black', 'Some Other Race', 'Asian']
@@ -199,12 +207,19 @@ def extract_enc_data(processed_data):
     for index, row in cond.iterrows():
         new_row = [person_id, row['age'], row['code'], row['feat_dict'], row['age_dict']]
         df = pd.concat([df, pd.DataFrame([new_row], columns=cols_name)], ignore_index=True)
+
     med = processed_data['medications']
     for index, row in med.iterrows():
         new_row = [person_id, row['age'], row['code'], row['feat_dict'], row['age_dict']]
         df = pd.concat([df, pd.DataFrame([new_row], columns=cols_name)], ignore_index=True)
+
     obs = processed_data['observations']
     for index, row in obs.iterrows():
+        new_row = [person_id, row['age'], row['code'], row['feat_dict'], row['age_dict']]
+        df = pd.concat([df, pd.DataFrame([new_row], columns=cols_name)], ignore_index=True)
+
+    bmi = processed_data['bmi']
+    for index, row in bmi.iterrows():
         new_row = [person_id, row['age'], row['code'], row['feat_dict'], row['age_dict']]
         df = pd.concat([df, pd.DataFrame([new_row], columns=cols_name)], ignore_index=True)
 
@@ -215,17 +230,12 @@ def extract_enc_data(processed_data):
     #     new_row = [person_id, row['age'], row['code'], row['feat_dict'], row['age_dict']]
     #     df = pd.concat([df, pd.DataFrame([new_row], columns=cols_name)], ignore_index=True)
 
-    # TODO: BMI
-    # bmi = processed_data['bmi']
-    # for index, row in bmi.iterrows():
-    #     # df = df.append({"person_id": person_id, "Age": row['age'], "value": 1, "feat_dict": row['feat_dict'], "age_dict": row['age_dict']}, ignore_index=True)
-    #     new_row = [person_id, row['age'], row['code'], row['feat_dict'], row['age_dict']]
-    #     df = pd.concat([df, pd.DataFrame([new_row], columns=cols_name)], ignore_index=True)
-
     ### filter based on age
     df = df[df['age_dict'] <= 24]
     ### filter unknowns
     df = df[df['feat_dict'] > 0]
+    ### sort based on age
+    df = df.sort_values(by=['age_dict'])
     return df
 
 
@@ -279,9 +289,9 @@ def extract_dec_data(data, map_dict, obser_pred_wins):
 def read_mapping_dicts():
     print("Reading mapping dictionaries...")
 
-    wflb = pd.read_csv("wfl_b.csv", dtype={'Length': float, 'P5': float, 'P85': float, 'P95': float})
-    wflg = pd.read_csv("wfl_g.csv", dtype={'Length': float, 'P5': float, 'P85': float, 'P95': float})
-    bmip = pd.read_csv("bmip.csv", dtype={'Agemos': float, 'P5': float, 'P85': float, 'P95': float})
+    wflb = pd.read_csv("./data/wfl_b.csv", dtype={'Length': float, 'P5': float, 'P85': float, 'P95': float})
+    wflg = pd.read_csv("./data/wfl_g.csv", dtype={'Length': float, 'P5': float, 'P85': float, 'P95': float})
+    bmip = pd.read_csv("./data/bmip.csv", dtype={'Agemos': float, 'P5': float, 'P85': float, 'P95': float})
 
     wflb = wflb[['Length', 'P5', 'P85', 'P95']]
     wflg = wflg[['Length', 'P5', 'P85', 'P95']]
@@ -291,26 +301,28 @@ def read_mapping_dicts():
     wflg['Sex'] = 'Female'
     wfl = pd.concat([wflb, wflg])
 
-    dec_features = pd.read_csv('./data/vocab/dec_features.csv', header=0)
+    dec_features = pd.read_csv('./data/dec_features.csv', header=0)
     meas_quartiles = pd.read_csv('./data/meas_q_intervals.csv', header=0)
     meas_quartiles['col_name'] = meas_quartiles['col_name'].astype(str).apply(lambda x: x[:-2])
     meas_quartiles = meas_quartiles.set_index('col_name')
 
-    with open('./data/map/loinc2concept', 'rb') as f:
+    with open('./data/loinc2concept', 'rb') as f:
         loinc2concept = pickle.load(f)
-    with open('data/map/snomed2desc', 'rb') as f:
+    with open('./data/snomed2desc', 'rb') as f:
         snomed2desc = pickle.load(f)
-    with open('./data/map/rxcode2conceptid', 'rb') as f:
+    with open('./data/rxcode2conceptid', 'rb') as f:
         rxcode2concept = pickle.load(f)
-    with open('./data/map/atc_map', 'rb') as f:
+    with open('./data/atc_map', 'rb') as f:
         atc_map = pickle.load(f)
-    with open('./data/vocab/featVocab', 'rb') as f:
+    with open('./data/featVocab', 'rb') as f:
         feat_vocab = pickle.load(f)
+    with open('./data/demoVocab', 'rb') as f:
+        demoVocab = pickle.load(f)
 
 
     return {"meas_quartiles": meas_quartiles, "loinc2concept": loinc2concept, "snomed2desc": snomed2desc,
             "rxcode2concept": rxcode2concept, "atc_map": atc_map, "feat_vocab": feat_vocab,
-            "dec_features": dec_features, 'bmip': bmip, 'wfl': wfl}
+            "dec_features": dec_features, 'bmip': bmip, 'wfl': wfl, 'demo_vocab': demoVocab}
 
 
 def calc_bmip(data, map_dict):
@@ -393,8 +405,10 @@ def extract_ehr_history(prrocessed_data):
     o['Type'] = 'Observation'
     c = prrocessed_data['conditions']
     c['Type'] = 'Condition'
+    b = prrocessed_data['bmi']
+    b['Type'] = 'BMI'
 
-    out_df = pd.concat([m, o, c], ignore_index=True)
+    out_df = pd.concat([m, o, c, b], ignore_index=True)
     out_df.sort_values(by=['age'], inplace=True)
     out_df = out_df[out_df['age'] >= 0]
     out_df = out_df[out_df['feat_dict'] > 0]
@@ -403,11 +417,11 @@ def extract_ehr_history(prrocessed_data):
 
     out_df = out_df[['Age (months)', 'Type', 'Code', 'Name', 'value', 'unit', 'feat_dict']]
 
-    return {"moc_data": out_df.to_html(na_rep="", index=False, justify='left')}
+    return {"moc_data": out_df.to_html(na_rep="", justify='left', index=False)}
 
 
 def extract_anthropometric_data(data):
-    observation_df = data['observations']
+    observation_df = data['bmi']
 
     observation_df['age'] = observation_df['age'].round(0)
     observation_df['value'] = observation_df['value'].round(1)
@@ -501,16 +515,20 @@ def inference(data, models, obser_pred_wins):
         enc_feat, enc_len, enc_age, enc_demo = encXY(data)
         dec_feat = decXY(data)
         obs_idx = 0
-        enc_feat, enc_len, enc_age, enc_demo, dec_feat = enc_feat[obs_idx], enc_len[obs_idx], enc_age[obs_idx],enc_demo[obs_idx], dec_feat[obs_idx]
+        enc_feat, enc_len, enc_age, enc_demo, dec_feat = enc_feat[obs_idx], enc_len[obs_idx], enc_age[obs_idx], \
+            enc_demo[obs_idx], dec_feat[obs_idx]
 
-        output, prob, disc_input, logits = net(False, False, enc_feat, enc_len, enc_age, enc_demo, dec_feat)
+        output, prob, _, _ = net(False, False, enc_feat, enc_len, enc_age, enc_demo, dec_feat)
 
         output_prob_list = []
         output_time_list = []
         for i in range(0, len(prob)):
-            output_prob_list.append(float(prob[i].squeeze()[1].data.cpu().numpy()))
+            if output[i].data.cpu().numpy()[0] == 0:
+                output_prob_list.append('No')
+            else:
+                output_prob_list.append('Yes')
             output_time_list.append(obser_pred_wins["obser_max"] + i + 1)
 
-        preds = pd.DataFrame({'Age (years)': output_time_list, 'Probability': output_prob_list}).to_html()
+        preds = pd.DataFrame({'Age (years)': output_time_list, 'Obesity': output_prob_list}).to_html(index=False)
 
     return {'preds': preds}
