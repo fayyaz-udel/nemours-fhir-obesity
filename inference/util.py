@@ -148,7 +148,7 @@ def map_concept_codes(prrocessed_data, map_dict):
 
 
 def extract_representations(processed_data, map_dict, obser_pred_wins):
-    demo = extract_demo_data(processed_data)
+    demo = extract_demo_data(processed_data, map_dict)
     enc = extract_enc_data(processed_data)
     dec = extract_dec_data(processed_data, map_dict, obser_pred_wins)
 
