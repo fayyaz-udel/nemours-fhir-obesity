@@ -19,6 +19,10 @@ importlib.reload(model)
 person_id = 820427166
 
 
+def add_bmi_range(height, weight, observation_df, map_dict):
+    pass #TODO
+
+
 def process_input(data, map_dict):
     medication_list = []
     observation_list = []
@@ -77,6 +81,7 @@ def process_input(data, map_dict):
 
     observation_df = pd.concat([bmi, observation_df], ignore_index=True)
     observation_df.drop_duplicates(subset=['value', 'code', 'date'], inplace=True)
+    add_bmi_range(height, weight, observation_df, map_dict)
 
     # TODO: FAMILY HISTORY
     # TODO: BMI --> maybe it need to be placed somewhere else
