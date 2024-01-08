@@ -273,6 +273,19 @@ def extract_dec_data(data, map_dict, obser_pred_wins):
 
 def read_mapping_dicts():
     print("Reading mapping dictionaries...")
+
+    wflb = pd.read_csv("wfl_b.csv", dtype={'Length': float, 'P5': float, 'P85': float, 'P95': float})
+    wflg = pd.read_csv("wfl_g.csv", dtype={'Length': float, 'P5': float, 'P85': float, 'P95': float})
+    bmip = pd.read_csv("bmip.csv", dtype={'Agemos': float, 'P5': float, 'P85': float, 'P95': float})
+
+    wflb = wflb[['Length', 'P5', 'P85', 'P95']]
+    wflg = wflg[['Length', 'P5', 'P85', 'P95']]
+    bmip = bmip[['Agemos', 'Sex', 'P5', 'P85', 'P95']]
+    bmip['Sex'] = bmip['Sex'].map({1: 'Female', 2: 'Male'})
+    wflb['Sex'] = 'Male'
+    wflg['Sex'] = 'Female'
+    wfl = pd.concat([wflb, wflg])
+
     dec_features = pd.read_csv('./data/vocab/dec_features.csv', header=0)
     meas_quartiles = pd.read_csv('./data/meas_q_intervals.csv', header=0)
     meas_quartiles['col_name'] = meas_quartiles['col_name'].astype(str).apply(lambda x: x[:-2])
@@ -289,19 +302,57 @@ def read_mapping_dicts():
     with open('./data/vocab/featVocab', 'rb') as f:
         feat_vocab = pickle.load(f)
 
+
     return {"meas_quartiles": meas_quartiles, "loinc2concept": loinc2concept, "snomed2desc": snomed2desc,
             "rxcode2concept": rxcode2concept, "atc_map": atc_map, "feat_vocab": feat_vocab,
-            "dec_features": dec_features}
+            "dec_features": dec_features, 'bmip': bmip, 'wfl': wfl}
 
 
+def calc_bmip(data, map_dict):
+    # >0 <=5 'Underweight'
+    # >=5 <85 'Normal'
+    # >=85 & <95 'Overweight'
+    # >=95 'Obesity'
+    bmip = map_dict['bmip']
+    wfl = map_dict['wfl']
+
+    sex = data['sex']
+    age = data['age']
+    if age <= 24:
+        row = wfl[(wfl['Length'] == int(data['height'])) & (wfl['Sex'] == sex)].iloc[0]
+        if row['P5'] > data['weight']:
+            return 'Underweight'
+        elif row['P5'] <= data['weight'] < row['P85']:
+            return 'Normal'
+        elif row['P85'] <= data['weight'] < row['P95']:
+            return 'Overweight'
+        elif row['P95'] <= data['weight']:
+            return 'Obesity'
+        else:
+            return 'Not Available'
+    else:
+        age = round(age, 0) + 0.5
+        row = bmip[(bmip['Agemos'] == age) & (bmip['Sex'] == sex)].iloc[0]
+        if row['P5'] > data['bmi']:
+            return 'Underweight'
+        elif row['P5'] <= data['bmi'] < row['P85']:
+            return 'Normal'
+        elif row['P85'] <= data['bmi'] < row['P95']:
+            return 'Overweight'
+        elif row['P95'] <= data['bmi']:
+            return 'Obesity'
+        else:
+            return 'Not Available'
 def calc_q(concept_id, value, meas_q):
     if concept_id in meas_q.index:
         qs = meas_q.loc[concept_id]
         if value < qs['q1']:
-            return "1"
+            return "0"
         elif value < qs['q2']:
-            return "2"
+            return "1"
         elif value < qs['q3']:
+            return "2"
+        elif value < qs['q4']:
             return "3"
         else:
             return "4"
