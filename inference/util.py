@@ -22,22 +22,25 @@ person_id = 820427166
 
 
 def calculate_wfl_stage(height, weight, map_dict, sex):
-    ih = height.sort_values(by=['age_dict']) # interpolate(height)  # interpolate height
-    iw = weight.sort_values(by=['age_dict']) # interpolate(weight)  # interpolate weight
+    ih = height.sort_values(by=['age_dict'])  # interpolate(height)  # interpolate height
+    iw = weight.sort_values(by=['age_dict'])  # interpolate(weight)  # interpolate weight
 
     stage_list = []
     t_list = [6, 9, 12, 18, 24]
     for t in t_list:
-        hv = ih[ih['age_dict'] <= t]['value'].iloc[-1]
-        wv = iw[iw['age_dict'] <= t]['value'].iloc[-1]
-        bmi_stage, stage_dict = calc_bmip({'height': hv, 'weight': wv, 'sex': sex, 'age': t}, map_dict)
-        if t !=24:
-            stage_list.append(stage_dict)
-        else:
-            stage_list.append(bmi_stage)
+        hv = ih[ih['age_dict'] <= t]['value']
+        wv = iw[iw['age_dict'] <= t]['value']
+        if len(hv) + len(iw) != 0:
+            hv = hv.iloc[-1]
+            iw = iw.iloc[-1]
+
+            bmi_stage, stage_dict = calc_bmip({'height': hv, 'weight': wv, 'sex': sex, 'age': t}, map_dict)
+            if t != 24:
+                stage_list.append(stage_dict)
+            else:
+                stage_list.append(bmi_stage)
 
     return pd.DataFrame({'age_dict': t_list, 'stage': stage_list})
-
 
 
 def interpolate(df):
@@ -562,7 +565,7 @@ def decXY(data):
     # Reshape to 3-D
     dec_feat = torch.tensor(dec_feat)
     dec_feat = torch.reshape(dec_feat, (
-    ids_len, int(dec_feat.shape[0] / ids_len), dec_feat.shape[1]))  # Hamed Change 8 to dec_feat.shape[0]
+        ids_len, int(dec_feat.shape[0] / ids_len), dec_feat.shape[1]))  # Hamed Change 8 to dec_feat.shape[0]
 
     mask = torch.tensor(mask)
     mask = torch.reshape(mask, (ids_len, -1))
@@ -570,7 +573,7 @@ def decXY(data):
     return dec_feat, mask
 
 
-def inference(data, net, obs=1):
+def inference(data, net, obsrv_max, obs=1):
     net.eval()
 
     enc_feat, enc_len, enc_age, enc_demo = encXY(data)
@@ -605,7 +608,7 @@ def inference(data, net, obs=1):
             output_prob_list.append('No')
         else:
             output_prob_list.append('Yes')
-        output_time_list.append(i + 1)
+        output_time_list.append(obsrv_max + i + 1)
     ########################################################################
     # for i in range(0, len(prob) - 1):  # time
     #     print(prob[i][:, 1].data.cpu().numpy())[0]  # prob of class 1 (obesity) ---- [0] is for the first patient

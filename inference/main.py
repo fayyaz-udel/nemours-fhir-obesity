@@ -31,7 +31,7 @@ def index():
     if net is None:
         inference_data = {'preds': "No model available to predict for patients at this age."}
     else:
-        inference_data = inference(represantation_data, net)
+        inference_data = inference(represantation_data, net, obser_pred_wins["obser_max"])
 
     anthropometric_data = extract_anthropometric_data(prrocessed_data)
     ehr_history = extract_ehr_history(prrocessed_data)
