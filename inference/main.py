@@ -12,8 +12,6 @@ from flask_cors import CORS, cross_origin
 app = Flask(__name__)
 cors = CORS(app)
 
-# model = keras.models.load_model("assets/obesity_prediction_model.h5")
-# transformer = joblib.load("assets/data_transformer.joblib")
 map_dict = read_mapping_dicts()
 
 models = load_models()

@@ -21,8 +21,37 @@ importlib.reload(model)
 person_id = 820427166
 
 
-def add_bmi_range(height, weight, observation_df, map_dict):
-    pass  # TODO
+def calculate_wfl_stage(height, weight, map_dict, sex):
+    ih = height.sort_values(by=['age_dict']) # interpolate(height)  # interpolate height
+    iw = weight.sort_values(by=['age_dict']) # interpolate(weight)  # interpolate weight
+
+    stage_list = []
+    t_list = [6, 9, 12, 18, 24]
+    for t in t_list:
+        hv = ih[ih['age_dict'] <= t]['value'].iloc[-1]
+        wv = iw[iw['age_dict'] <= t]['value'].iloc[-1]
+        bmi_stage, stage_dict = calc_bmip({'height': hv, 'weight': wv, 'sex': sex, 'age': t}, map_dict)
+        if t !=24:
+            stage_list.append(stage_dict)
+        else:
+            stage_list.append(bmi_stage)
+
+    return pd.DataFrame({'age_dict': t_list, 'stage': stage_list})
+
+
+
+def interpolate(df):
+    idf = df.copy()
+    idf.index = idf['age_dict']
+    exist = set(idf['age_dict'].values.tolist())
+    all = set(range(0, 25))
+    missing = all - exist
+    missing = list(missing)
+    missing.sort()
+    for m in missing:
+        idf.loc[m] = None
+    idf.interpolate(method='linear', limit_direction='forward')
+    return idf
 
 
 def process_input(data, map_dict):
@@ -67,12 +96,23 @@ def process_input(data, map_dict):
                              'date': condition.onsetDateTime.date}, index=[idx])
         condition_df = pd.concat([condition_df, curr], ignore_index=True)
 
+    ####################################################################################################################
+    ####################################################################################################################
     #################  split BMI% form other selected observatiions #############
     bmi_df = observation_df[observation_df['code'] == '39156-5']
     observation_df = observation_df[observation_df['code'] != '39156-5']
-    ################# Calculate BMI based on Height&Weight ######################
+    ###################  calculate WFL for 6,9,12,18,24  ########################
+    dob = pd.to_datetime(patient.birthDate.date, utc=True)
+
     height = observation_df[observation_df['code'] == '8302-2'][['date', 'value']]
     weight = observation_df[observation_df['code'] == '29463-7'][['date', 'value']]
+
+    height = add_age(height, dob)
+    weight = add_age(weight, dob)
+
+    bmi_stage_df = calculate_wfl_stage(height, weight, map_dict, patient.gender.capitalize())
+    ################# Calculate BMI based on Height&Weight ######################
+
     bmi = pd.merge(height, weight, on='date', how='inner')
     bmi['value'] = (bmi['value_y'] * 10000) / (bmi['value_x'] ** 2)
 
@@ -84,11 +124,9 @@ def process_input(data, map_dict):
 
     bmi_df = pd.concat([bmi, bmi_df], ignore_index=True)
     bmi_df.drop_duplicates(subset=['value', 'code', 'date'], inplace=True)
-    add_bmi_range(height, weight, observation_df, map_dict)
 
     # TODO: FAMILY HISTORY
     ########################## Calculate Age ################################
-
     dob = pd.to_datetime(patient.birthDate.date, utc=True)
     medication_df = add_age(medication_df, dob)
     observation_df = add_age(observation_df, dob)
@@ -96,7 +134,7 @@ def process_input(data, map_dict):
     bmi_df = add_age(bmi_df, dob)
 
     return {'medications': medication_df, 'observations': observation_df, 'conditions': condition_df,
-            'patient': patient, 'family_history': None, 'bmi': bmi_df}
+            'patient': patient, 'family_history': None, 'bmi': bmi_df, 'bmi_stage': bmi_stage_df}
 
 
 def add_age(df, dob):
@@ -119,6 +157,7 @@ def map_concept_codes(prrocessed_data, map_dict):
     obs_df = prrocessed_data['observations']
     cond_df = prrocessed_data['conditions']
     med_df = prrocessed_data['medications']
+    bmi_stage_df = prrocessed_data['bmi_stage']
     bmi_df = prrocessed_data['bmi']
     ############################### Map Medication Codes ################################
     # 'system', 'code', 'display', 'date', 'age', 'age_dict'
@@ -140,11 +179,13 @@ def map_concept_codes(prrocessed_data, map_dict):
     cond_df['feat_dict'] = cond_df['feat'].apply(lambda x: feat_vocab.get(str(x).strip(), -555))
     cond_df = cond_df[cond_df['feat_dict'] != -555]
     ############################### Map BMIp Codes ################################
-    bmi_df['feat_dict'] = bmi_df['code'].apply(lambda x: feat_vocab.get(str(x).strip(), 144))
+    bmi_df['feat_dict'] = 144
+    bmi_stage_df['feat_dict'] = bmi_stage_df['stage'].apply(lambda x: feat_vocab.get(str(x).strip(), 244))
 
     prrocessed_data['observations'] = obs_df
     prrocessed_data['conditions'] = cond_df
     prrocessed_data['medications'] = med_df
+    prrocessed_data['bmi_stage'] = bmi_stage_df
     prrocessed_data['bmi'] = bmi_df
     return prrocessed_data
 
@@ -236,9 +277,9 @@ def extract_enc_data(processed_data):
         new_row = [person_id, row['age'], row['code'], row['feat_dict'], row['age_dict']]
         df = pd.concat([df, pd.DataFrame([new_row], columns=cols_name)], ignore_index=True)
 
-    bmi = processed_data['bmi']
+    bmi = processed_data['bmi_stage']
     for index, row in bmi.iterrows():
-        new_row = [person_id, row['age'], row['code'], row['feat_dict'], row['age_dict']]
+        new_row = [person_id, row['age_dict'], row['stage'], row['feat_dict'], row['age_dict']]
         df = pd.concat([df, pd.DataFrame([new_row], columns=cols_name)], ignore_index=True)
 
     # TODO: FAMILY HISTORY
@@ -284,13 +325,13 @@ def extract_dec_data(data, map_dict, obser_pred_wins):
                 if med_t[med_t['atc_3_code'] == f['name']].shape[0] > 0:
                     dr.loc[dr.age_dict == tw, f['name']] = d[f['name']]
                 else:
-                    dr.loc[dr.age_dict == tw, f['name']] = d['0.0']
+                    dr.loc[dr.age_dict == tw, f['name']] = d[f['name']]  # d['0.0']
             ############## condition ################
             elif f['type'] == 'cond':
                 if cond_t[cond_t['display'] == f['name']].shape[0] > 0:
                     dr.loc[dr.age_dict == tw, f['name']] = d[f['name']]
                 else:
-                    dr.loc[dr.age_dict == tw, f['name']] = d['0.0']
+                    dr.loc[dr.age_dict == tw, f['name']] = d[f['name']]  # d['0.0']
 
             ############## observation ################
             elif f['type'] == 'meas':
@@ -299,9 +340,9 @@ def extract_dec_data(data, map_dict, obser_pred_wins):
                     dr.loc[dr.age_dict == tw, f['name']] = curr_obs.head(1)['feat_dict'].values[0]
                 else:
                     dr.loc[dr.age_dict == tw, f['name']] = d['0.0']
-            #### TODO: FAMILY HISTORY
-            # elif row['type'] == 'fh':
-            #     dr.loc[dr.age_dict == time_window, f['name']] = d[f['name']]
+            ############# TODO: FAMILY HISTORY #########
+            elif f['type'] == 'fh':
+                dr.loc[dr.age_dict == tw, f['name']] = d[f['name']]
 
     return dr
 
@@ -357,26 +398,26 @@ def calc_bmip(data, map_dict):
     if age <= 24:
         row = wfl[(wfl['Length'] == int(data['height'])) & (wfl['Sex'] == sex)].iloc[0]
         if row['P5'] > data['weight']:
-            return 'Underweight'
+            return 'Underweight', "BMIp_Change_0"
         elif row['P5'] <= data['weight'] < row['P85']:
-            return 'Normal'
+            return 'Normal', "BMIp_Change_1"
         elif row['P85'] <= data['weight'] < row['P95']:
-            return 'Overweight'
+            return 'Overweight', "BMIp_Change_2"
         elif row['P95'] <= data['weight']:
-            return 'Obesity'
+            return 'Obesity', "BMIp_Change_3"
         else:
             return 'Not Available'
     else:
         age = round(age, 0) + 0.5
         row = bmip[(bmip['Agemos'] == age) & (bmip['Sex'] == sex)].iloc[0]
         if row['P5'] > data['bmi']:
-            return 'Underweight'
+            return 'Underweight', "BMIp_Change_0"
         elif row['P5'] <= data['bmi'] < row['P85']:
-            return 'Normal'
+            return 'Normal', "BMIp_Change_1"
         elif row['P85'] <= data['bmi'] < row['P95']:
-            return 'Overweight'
+            return 'Overweight', "BMIp_Change_2"
         elif row['P95'] <= data['bmi']:
-            return 'Obesity'
+            return 'Obesity', "BMIp_Change_3"
         else:
             return 'Not Available'
 
@@ -520,7 +561,8 @@ def decXY(data):
 
     # Reshape to 3-D
     dec_feat = torch.tensor(dec_feat)
-    dec_feat = torch.reshape(dec_feat, (ids_len, int(dec_feat.shape[0]/ids_len), dec_feat.shape[1])) # Hamed Change 8 to dec_feat.shape[0]
+    dec_feat = torch.reshape(dec_feat, (
+    ids_len, int(dec_feat.shape[0] / ids_len), dec_feat.shape[1]))  # Hamed Change 8 to dec_feat.shape[0]
 
     mask = torch.tensor(mask)
     mask = torch.reshape(mask, (ids_len, -1))
@@ -534,7 +576,7 @@ def inference(data, net, obs=1):
     enc_feat, enc_len, enc_age, enc_demo = encXY(data)
     dec_feat, mask = decXY(data)
 
-    pred_mask = np.ones((mask.shape[0], mask.shape[1])) # Hamed Change zeros to ones
+    pred_mask = np.ones((mask.shape[0], mask.shape[1]))  # Hamed Change zeros to ones
 
     if obs > 0:
         pred_mask[:, 0:obs] = mask[:, 0:obs]  # mask right

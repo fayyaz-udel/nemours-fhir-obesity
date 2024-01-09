@@ -179,7 +179,7 @@ class Decoder2(nn.Module):
             reg_input = torch.cat((h_n, weighted), dim=1)
             reg_input = torch.cat((reg_input, enc_demo), dim=1)
 
-            for i in range(4):#featEmbed.shape[1]):
+            for i in range(featEmbed.shape[1]):
                 reg_input = torch.cat((reg_input, featEmbed[:, i, :]), dim=1)
 
             bmi_h = self.linears[t](reg_input)
