@@ -1,5 +1,7 @@
 import warnings
 
+import numpy as np
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import pickle
 import math
@@ -20,7 +22,7 @@ person_id = 820427166
 
 
 def add_bmi_range(height, weight, observation_df, map_dict):
-    pass #TODO
+    pass  # TODO
 
 
 def process_input(data, map_dict):
@@ -151,13 +153,29 @@ def extract_representations(processed_data, map_dict, obser_pred_wins):
     demo = extract_demo_data(processed_data, map_dict)
     enc = extract_enc_data(processed_data)
     dec = extract_dec_data(processed_data, map_dict, obser_pred_wins)
+    demo, enc, dec = duplicate(demo, enc, dec)
 
     return {"demo": demo, "enc": enc, "dec": dec}
 
 
+def duplicate(demo, enc, dec):
+    demo2 = demo.copy()
+    demo2['person_id'] = demo2['person_id'] + 1000
+    demo = pd.concat([demo, demo2], ignore_index=True)
+
+    enc2 = enc.copy()
+    enc2['person_id'] = enc2['person_id'] + 1000
+    enc = pd.concat([enc, enc2], ignore_index=True)
+
+    dec2 = dec.copy()
+    dec2['person_id'] = dec2['person_id'] + 1000
+    dec = pd.concat([dec, dec2], ignore_index=True)
+
+    return demo, enc, dec
+
+
 def extract_demo_data(data, map_dict):
     demoVocab = map_dict["demo_vocab"]
-
 
     ### Mehak used race/eth vice versa wrongly
     # Eth_label_list = ['NI', 'White', 'Black', 'Some Other Race', 'Asian']
@@ -236,6 +254,8 @@ def extract_enc_data(processed_data):
     df = df[df['feat_dict'] > 0]
     ### sort based on age
     df = df.sort_values(by=['age_dict'])
+    df['feat_dict'] = df['feat_dict'].astype(int)
+    df['age_dict'] = df['age_dict'].astype(int)
     return df
 
 
@@ -319,7 +339,6 @@ def read_mapping_dicts():
     with open('./data/demoVocab', 'rb') as f:
         demoVocab = pickle.load(f)
 
-
     return {"meas_quartiles": meas_quartiles, "loinc2concept": loinc2concept, "snomed2desc": snomed2desc,
             "rxcode2concept": rxcode2concept, "atc_map": atc_map, "feat_vocab": feat_vocab,
             "dec_features": dec_features, 'bmip': bmip, 'wfl': wfl, 'demo_vocab': demoVocab}
@@ -360,6 +379,8 @@ def calc_bmip(data, map_dict):
             return 'Obesity'
         else:
             return 'Not Available'
+
+
 def calc_q(concept_id, value, meas_q):
     if concept_id in meas_q.index:
         qs = meas_q.loc[concept_id]
@@ -437,13 +458,8 @@ def extract_anthropometric_data(data):
 
 def encXY(data):
     enc = data['enc']
-    demo = data['demo']
-
     enc_len = pd.DataFrame(enc[enc['value'] != '0'].groupby('person_id').size().reset_index(name='counts'))
-
-    # enc_ob.loc[enc_ob.value == 'Normal', 'label'] = 0
-    # enc_ob.loc[enc_ob.value == 'Obesity', 'label'] = 2
-    # enc_ob.loc[enc_ob.value == 'Overweight', 'label'] = 1
+    demo = data['demo']
 
     enc_feat = enc['feat_dict'].values
     enc_eth = demo['Eth_dict'].values
@@ -455,31 +471,27 @@ def encXY(data):
 
     enc_age = enc['age_dict'].values
 
+    ids_len = len(pd.unique(enc['person_id']))
     # Reshape to 3-D
-    # print(enc_feat.shape)
-    enc_feat = torch.tensor(enc_feat.astype(int))
-    enc_feat = torch.reshape(enc_feat, (1, -1))
+    enc_feat = torch.tensor(enc_feat)
+    enc_feat = torch.reshape(enc_feat, (ids_len, -1))
     enc_feat = enc_feat.type(torch.LongTensor)
 
     enc_len = torch.tensor(enc_len)
     enc_len = enc_len.type(torch.LongTensor)
 
-    enc_age = torch.tensor(enc_age.astype(int))
-    enc_age = torch.reshape(enc_age, (1, -1))
+    enc_age = torch.tensor(enc_age)
+    enc_age = torch.reshape(enc_age, (ids_len, -1))
     enc_age = enc_age.type(torch.LongTensor)
-    ##########################################################################
+
     enc_eth = torch.tensor(enc_eth)
     enc_eth = enc_eth.unsqueeze(1)
-
     enc_race = torch.tensor(enc_race)
     enc_race = enc_race.unsqueeze(1)
-
     enc_sex = torch.tensor(enc_sex)
     enc_sex = enc_sex.unsqueeze(1)
-
     enc_payer = torch.tensor(enc_payer)
     enc_payer = enc_payer.unsqueeze(1)
-
     enc_coi = torch.tensor(enc_coi)
     enc_coi = enc_coi.unsqueeze(1)
 
@@ -501,34 +513,60 @@ def decXY(data):
 
     dec_feat = dec.iloc[:, 2:].values
 
+    ids_len = len(pd.unique(dec['person_id']))
+
+    mask = np.ones((dec_feat.shape[0],))
+    # mask = mask['value'].values
+
+    # Reshape to 3-D
     dec_feat = torch.tensor(dec_feat)
-    dec_feat = torch.reshape(dec_feat, (1, dec_feat.shape[0], dec_feat.shape[1]))
+    dec_feat = torch.reshape(dec_feat, (ids_len, int(dec_feat.shape[0]/ids_len), dec_feat.shape[1])) # Hamed Change 8 to dec_feat.shape[0]
 
-    return dec_feat
+    mask = torch.tensor(mask)
+    mask = torch.reshape(mask, (ids_len, -1))
+
+    return dec_feat, mask
 
 
-def inference(data, models, obser_pred_wins):
-    net = models.get(obser_pred_wins["obser_max"], None)
-    if net is None:
-        preds = "No model available to predict for patients at this age."
-    else:
-        enc_feat, enc_len, enc_age, enc_demo = encXY(data)
-        dec_feat = decXY(data)
-        obs_idx = 0
-        enc_feat, enc_len, enc_age, enc_demo, dec_feat = enc_feat[obs_idx], enc_len[obs_idx], enc_age[obs_idx], \
-            enc_demo[obs_idx], dec_feat[obs_idx]
+def inference(data, net, obs=1):
+    net.eval()
 
-        output, prob, _, _ = net(False, False, enc_feat, enc_len, enc_age, enc_demo, dec_feat)
+    enc_feat, enc_len, enc_age, enc_demo = encXY(data)
+    dec_feat, mask = decXY(data)
 
-        output_prob_list = []
-        output_time_list = []
-        for i in range(0, len(prob)):
-            if output[i].data.cpu().numpy()[0] == 0:
-                output_prob_list.append('No')
-            else:
-                output_prob_list.append('Yes')
-            output_time_list.append(obser_pred_wins["obser_max"] + i + 1)
+    pred_mask = np.ones((mask.shape[0], mask.shape[1])) # Hamed Change zeros to ones
 
-        preds = pd.DataFrame({'Age (years)': output_time_list, 'Obesity': output_prob_list}).to_html(index=False)
+    if obs > 0:
+        pred_mask[:, 0:obs] = mask[:, 0:obs]  # mask right
+    pred_mask = torch.tensor(pred_mask)
+    pred_mask = pred_mask.type(torch.DoubleTensor)
+    # dec_feat
 
+    pred_mask_feat = pred_mask.unsqueeze(2)
+    pred_mask_feat = pred_mask_feat.repeat(1, 1, dec_feat.shape[2])
+    pred_mask_feat = pred_mask_feat.type(torch.DoubleTensor)
+
+    dec_feat_pred = dec_feat * pred_mask_feat
+    if obs > 0:
+        obs_idx = pred_mask[:, obs - 1]  # take last entry before prediction window
+        obs_idx = torch.nonzero(obs_idx > 0)
+        obs_idx = obs_idx.squeeze()
+        dec_feat_pred = dec_feat_pred[obs_idx]
+        enc_feat, enc_len, enc_age, enc_demo = enc_feat[obs_idx], enc_len[obs_idx], enc_age[obs_idx], enc_demo[obs_idx]
+
+    output, prob, disc_input, logits = net(False, False, enc_feat, enc_len, enc_age, enc_demo, dec_feat_pred)
+    ########################################################################
+    output_prob_list = []
+    output_time_list = []
+    for i in range(0, len(prob) - 1):  # time
+        if output[i].data.cpu().numpy()[0] == 0:  ## 0 is for the first patient
+            output_prob_list.append('No')
+        else:
+            output_prob_list.append('Yes')
+        output_time_list.append(i + 1)
+    ########################################################################
+    # for i in range(0, len(prob) - 1):  # time
+    #     print(prob[i][:, 1].data.cpu().numpy())[0]  # prob of class 1 (obesity) ---- [0] is for the first patient
+    ########################################################################
+    preds = pd.DataFrame({'Age (years)': output_time_list, 'Obesity': output_prob_list}).to_html(index=False)
     return {'preds': preds}

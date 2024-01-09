@@ -28,11 +28,12 @@ def index():
     obser_pred_wins = determine_observ_predict_windows(prrocessed_data)  # Determine observation and prediction windows
     represantation_data = extract_representations(prrocessed_data, map_dict, obser_pred_wins)
 
-    # represantation_data['dec'].to_csv('dec.csv')
-    # represantation_data['enc'].to_csv('enc.csv')
-    # represantation_data['demo'].to_csv('demo.csv')
 
-    inference_data = inference(represantation_data, models, obser_pred_wins)
+    net = models.get(obser_pred_wins["obser_max"], None)
+    if net is None:
+        inference_data = {'preds': "No model available to predict for patients at this age."}
+    else:
+        inference_data = inference(represantation_data, net)
 
     anthropometric_data = extract_anthropometric_data(prrocessed_data)
     ehr_history = extract_ehr_history(prrocessed_data)
