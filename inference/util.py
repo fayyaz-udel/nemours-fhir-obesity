@@ -30,15 +30,17 @@ def calculate_wfl_stage(height, weight, map_dict, sex):
     for t in t_list:
         hv = ih[ih['age_dict'] <= t]['value']
         wv = iw[iw['age_dict'] <= t]['value']
-        if len(hv) & len(iw):
+        if len(hv) & len(wv):
             hv = hv.iloc[-1]
-            iw = iw.iloc[-1]
+            wv = wv.iloc[-1]
 
             bmi_stage, stage_dict = calc_bmip({'height': hv, 'weight': wv, 'sex': sex, 'age': t}, map_dict)
             if t != 24:
                 stage_list.append(stage_dict)
             else:
                 stage_list.append(bmi_stage)
+        else:
+            stage_list.append('BMIp_Change_1')
 
     return pd.DataFrame({'age_dict': t_list, 'stage': stage_list})
 
@@ -197,7 +199,8 @@ def extract_representations(processed_data, map_dict, obser_pred_wins):
     demo = extract_demo_data(processed_data, map_dict)
     enc = extract_enc_data(processed_data)
     dec = extract_dec_data(processed_data, map_dict, obser_pred_wins)
-    demo, enc, dec = duplicate(demo, enc, dec)
+    if len(dec): # check if there is any record in decorder representation dataframe
+        demo, enc, dec = duplicate(demo, enc, dec)
 
     return {"demo": demo, "enc": enc, "dec": dec}
 
@@ -307,7 +310,7 @@ def extract_dec_data(data, map_dict, obser_pred_wins):
     if obser_pred_wins['obser_max'] >= 3:
         obser_max_dict_value = obser_pred_wins['obser_max'] + 22
     else:
-        return Exception("obser_max_dict_value is less than 3")
+        return pd.DataFrame()
     d = map_dict['feat_vocab']
     dec_features = map_dict['dec_features']
     med, obs, cond = data['medications'], data['observations'], data['conditions']
