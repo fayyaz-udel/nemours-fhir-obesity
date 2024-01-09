@@ -30,7 +30,7 @@ def calculate_wfl_stage(height, weight, map_dict, sex):
     for t in t_list:
         hv = ih[ih['age_dict'] <= t]['value']
         wv = iw[iw['age_dict'] <= t]['value']
-        if len(hv) + len(iw) != 0:
+        if len(hv) & len(iw):
             hv = hv.iloc[-1]
             iw = iw.iloc[-1]
 
