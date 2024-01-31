@@ -1,3 +1,4 @@
+import os
 import warnings
 
 import numpy as np
@@ -20,6 +21,8 @@ importlib.reload(model)
 
 person_id = 820427166
 
+data_folder = "./inference/data/"
+model_folder = "./inference/saved_models/"
 
 def calculate_wfl_stage(height, weight, map_dict, sex):
     ih = height.sort_values(by=['age_dict'])  # interpolate(height)  # interpolate height
@@ -356,9 +359,9 @@ def extract_dec_data(data, map_dict, obser_pred_wins):
 def read_mapping_dicts():
     print("Reading mapping dictionaries...")
 
-    wflb = pd.read_csv("./data/wfl_b.csv", dtype={'Length': float, 'P5': float, 'P85': float, 'P95': float})
-    wflg = pd.read_csv("./data/wfl_g.csv", dtype={'Length': float, 'P5': float, 'P85': float, 'P95': float})
-    bmip = pd.read_csv("./data/bmip.csv", dtype={'Agemos': float, 'P5': float, 'P85': float, 'P95': float})
+    wflb = pd.read_csv(data_folder + "wfl_b.csv", dtype={'Length': float, 'P5': float, 'P85': float, 'P95': float})
+    wflg = pd.read_csv(data_folder + "wfl_g.csv", dtype={'Length': float, 'P5': float, 'P85': float, 'P95': float})
+    bmip = pd.read_csv(data_folder + "bmip.csv", dtype={'Agemos': float, 'P5': float, 'P85': float, 'P95': float})
 
     wflb = wflb[['Length', 'P5', 'P85', 'P95']]
     wflg = wflg[['Length', 'P5', 'P85', 'P95']]
@@ -368,22 +371,22 @@ def read_mapping_dicts():
     wflg['Sex'] = 'Female'
     wfl = pd.concat([wflb, wflg])
 
-    dec_features = pd.read_csv('./data/dec_features.csv', header=0)
-    meas_quartiles = pd.read_csv('./data/meas_q_intervals.csv', header=0)
+    dec_features = pd.read_csv(data_folder + 'dec_features.csv', header=0)
+    meas_quartiles = pd.read_csv(data_folder + 'meas_q_intervals.csv', header=0)
     meas_quartiles['col_name'] = meas_quartiles['col_name'].astype(str).apply(lambda x: x[:-2])
     meas_quartiles = meas_quartiles.set_index('col_name')
 
-    with open('./data/loinc2concept', 'rb') as f:
+    with open(data_folder + 'loinc2concept', 'rb') as f:
         loinc2concept = pickle.load(f)
-    with open('./data/snomed2desc', 'rb') as f:
+    with open(data_folder + 'snomed2desc', 'rb') as f:
         snomed2desc = pickle.load(f)
-    with open('./data/rxcode2conceptid', 'rb') as f:
+    with open(data_folder + 'rxcode2conceptid', 'rb') as f:
         rxcode2concept = pickle.load(f)
-    with open('./data/atc_map', 'rb') as f:
+    with open(data_folder + 'atc_map', 'rb') as f:
         atc_map = pickle.load(f)
-    with open('./data/featVocab', 'rb') as f:
+    with open(data_folder + 'featVocab', 'rb') as f:
         feat_vocab = pickle.load(f)
-    with open('./data/demoVocab', 'rb') as f:
+    with open(data_folder + 'demoVocab', 'rb') as f:
         demoVocab = pickle.load(f)
 
     return {"meas_quartiles": meas_quartiles, "loinc2concept": loinc2concept, "snomed2desc": snomed2desc,
@@ -457,11 +460,11 @@ def determine_observ_predict_windows(prrocessed_data):
 
 def load_models():
     models = {}
-    models[2] = torch.load('./saved_models/obsNew_0.tar')
-    models[3] = torch.load('./saved_models/obsNew_1.tar')
-    models[4] = torch.load('./saved_models/obsNew_2.tar')
-    models[5] = torch.load('./saved_models/obsNew_3.tar')
-    models[6] = torch.load('./saved_models/obsNew_4.tar')
+    models[2] = torch.load(model_folder + 'obsNew_0.tar', map_location ='cpu')
+    models[3] = torch.load(model_folder + 'obsNew_1.tar', map_location ='cpu')
+    models[4] = torch.load(model_folder + 'obsNew_2.tar', map_location ='cpu')
+    models[5] = torch.load(model_folder + 'obsNew_3.tar', map_location ='cpu')
+    models[6] = torch.load(model_folder + 'obsNew_4.tar', map_location ='cpu')
 
     return models
 

@@ -3,7 +3,6 @@ from math import expm1
 
 import torch
 
-from inference.util import inference
 # import joblib
 from util import *
 from flask import Flask, jsonify, request
