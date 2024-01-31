@@ -488,7 +488,7 @@ def extract_ehr_history(prrocessed_data):
     return {"moc_data": out_df.to_html(na_rep="", justify='left', index=False)}
 
 
-def extract_anthropometric_data(data):
+def extract_anthropometric_data(data, smax):
     observation_df = data['bmi']
 
     observation_df['age'] = observation_df['age'].round(0)
@@ -498,7 +498,7 @@ def extract_anthropometric_data(data):
 
     bmi = observation_df[observation_df['code'] == '39156-5'][['age', 'value']]
 
-    return {"bmi_x": bmi["age"].to_list(), "bmi_y": bmi["value"].to_list()}
+    return {"bmi_x": bmi["age"].to_list() + [smax*12], "bmi_y": bmi["value"].to_list() + [None], 'smax': smax*12}
 
 
 ########################################################################################################################
@@ -604,17 +604,19 @@ def inference(data, net, obsrv_max, obs=1):
 
     output, prob, disc_input, logits = net(False, False, enc_feat, enc_len, enc_age, enc_demo, dec_feat_pred)
     ########################################################################
+    output_class_list = []
     output_prob_list = []
     output_time_list = []
     for i in range(0, len(prob) - 1):  # time
         if output[i].data.cpu().numpy()[0] == 0:  ## 0 is for the first patient
-            output_prob_list.append('No')
+            output_class_list.append('No')
         else:
-            output_prob_list.append('Yes')
+            output_class_list.append('Yes')
+        output_prob_list.append(prob[i][:, 1].data.cpu().numpy()[0])
         output_time_list.append(obsrv_max + i + 1)
     ########################################################################
     # for i in range(0, len(prob) - 1):  # time
     #     print(prob[i][:, 1].data.cpu().numpy())[0]  # prob of class 1 (obesity) ---- [0] is for the first patient
     ########################################################################
-    preds = pd.DataFrame({'Age (years)': output_time_list, 'Obesity': output_prob_list}).to_html(index=False)
+    preds = pd.DataFrame({'Age (years)': output_time_list, 'Obesity': output_class_list, 'Probability': output_prob_list}).to_html(index=False)
     return {'preds': preds}

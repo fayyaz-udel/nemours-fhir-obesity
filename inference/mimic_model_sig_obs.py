@@ -293,3 +293,4 @@ class DemoEmbed(nn.Module):
         demoEmbed = demoEmbed.type(torch.FloatTensor)
         demoEmbed = demoEmbed.to(self.device)
         return demoEmbed
+

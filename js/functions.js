@@ -26,10 +26,7 @@ function get_demographic() {
             document.getElementById("p_dob").innerHTML = pt.birthDate;
             document.getElementById("p_gender").innerHTML = pt.gender;
             document.getElementById("p_ethnicity").innerHTML = pt.extension[1].extension[0].valueCoding.display;
-
             document.getElementById("p_race").innerHTML = pt.extension[0].extension[0].valueCoding.display;
-            console.log("Hello, world!!!!");
-            console.log(pt.extension[1].extension[0].valueCoding.display);
             return pt;
         });
 
@@ -187,7 +184,6 @@ function get_server_response(data) {
     document.getElementById("moc_data").innerHTML = data['moc_data'];
     document.getElementById("preds").innerHTML = data['preds'];
 
-
     const bmiChartCtx = document.getElementById('bmiChart');
     new Chart(bmiChartCtx, {
         type: 'line',
@@ -214,7 +210,8 @@ function get_server_response(data) {
                         font: {
                             size: 18  // Adjust the tick font size as needed
                         }
-                    }
+                    },
+
                 },
                 y: {
                     title: {
