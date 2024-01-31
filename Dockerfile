@@ -6,8 +6,7 @@ WORKDIR /app
 
 RUN pip install -r requirements.txt
 COPY . /app
-RUN python3 -m http.server 3000 &
 
-ENTRYPOINT [ "python" ]
+ENTRYPOINT [ "python","./inference/main.py" ]
+CMD [ "python3","-m", "http.server" ,"3000"]
 
-CMD ["./inference/main.py" ]
