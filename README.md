@@ -1,8 +1,6 @@
-python3 -m http.server 3000
-
 https://launch.smarthealthit.org
 
-http://localhost:80/launch.html
+http://localhost:3000/launch.html
 
 
 docker image build -t flask_docker .
