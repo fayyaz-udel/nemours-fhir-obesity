@@ -23,7 +23,8 @@ person_id = 820427166
 
 data_folder = "./inference/data/"
 model_folder = "./inference/saved_models/"
-
+# data_folder = "./data/"
+# model_folder = "./saved_models/"
 def calculate_wfl_stage(height, weight, map_dict, sex):
     ih = height.sort_values(by=['age_dict'])  # interpolate(height)  # interpolate height
     iw = weight.sort_values(by=['age_dict'])  # interpolate(weight)  # interpolate weight
