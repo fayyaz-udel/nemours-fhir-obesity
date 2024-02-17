@@ -43,4 +43,4 @@ def index():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 4000))
-    app.run(debug=False, host='0.0.0.0', port=port, ssl_context=('../web/key/cert.pem', '../web/key/key.pem'))
+    app.run(debug=False, host='0.0.0.0', port=port, ssl_context=('./key/cert.pem', './key/key.pem'))
