@@ -1,11 +1,11 @@
 
-# <p align="center">Integratable Machine Learning for Obesity Risk Prediction using EHR Data</p>
+# <p align="center">An Interoperable ML Pipeline for Pediatric Obesity Risk Prediction using Commonly Available EHR Data</p>
   
 
     
 
 ## Abstract
-Early prediction and intervention for obesity are pivotal in managing its associated comorbidities and improving patient outcomes. However, there is still a gap and discontinuity between obesity prediction tools and operational data systems in clinical settings. This project introduces a novel end-to-end system specifically designed for obesity prediction. Taking advantage of data routinely recorded in Electronic Health Records (EHRs), the model employs a diverse range of clinical, demographic, and medical variables to predict individual risk of obesity. A distinct feature of our system is its seamless integration capability with EHR systems using the Fast Healthcare Interoperability Resources (FHIR) standard. This ensures ease of adoption in varied healthcare settings, facilitating timely identification of at-risk patients and promoting early interventions.
+Reliable prediction of pediatric obesity can offer a valuable resource to the providers helping them engage in timely preventive interventions before the disease is established. Many efforts have been made to develop ML-based predictive models of obesity and some studies report high predictive performances. However, no largely used clinical decision support tool based on these ML models currently exists. This study presents a novel end-to-end pipeline specifically designed for obesity prediction, which supports the entire process of data extraction, inference, and communication via an API or a user interface. By using only routinely recorded data in electronic health records (EHRs), our pipeline uses a diverse expert-curated list of medical facts to predict the risk of developing obesity. We have used input from various stakeholders, including ML scientists, providers, health IT personnel, health administration representatives, and patients throughout our design. By using the Fast Healthcare Interoperability Resources (FHIR) standard in our design procedure, we specifically target facilitating low-effort integration of our pipeline with different EHR systems. 
 
         
 ##  Installation
