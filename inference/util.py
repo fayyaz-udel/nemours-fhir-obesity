@@ -479,14 +479,14 @@ def extract_ehr_history(prrocessed_data):
     b = prrocessed_data['bmi']
     b['Type'] = 'BMI'
 
-    out_df = pd.concat([m, o, c, b], ignore_index=True)
+    out_df = pd.concat([m, o, c], ignore_index=True) # , b
     out_df.sort_values(by=['age'], inplace=True)
     out_df = out_df[out_df['age'] >= 0]
     out_df = out_df[out_df['feat_dict'] > 0]
     out_df['age'] = out_df['age'].astype(int)
     out_df.rename(columns={'display': 'Name', 'age': 'Age (months)', 'code': 'Code'}, inplace=True)
 
-    out_df = out_df[['Age (months)', 'Type', 'Code', 'Name', 'value', 'unit', 'feat_dict']]
+    out_df = out_df[['Age (months)', 'Type', 'Name', 'value', 'unit', 'feat_dict']] # , 'Code'
 
     return {"moc_data": out_df.to_html(na_rep="", justify='left', index=False)}
 
@@ -621,5 +621,5 @@ def inference(data, net, obsrv_max, obs=1):
     # for i in range(0, len(prob) - 1):  # time
     #     print(prob[i][:, 1].data.cpu().numpy())[0]  # prob of class 1 (obesity) ---- [0] is for the first patient
     ########################################################################
-    preds = pd.DataFrame({'Age (years)': output_time_list, 'Obesity': output_class_list, 'Probability': output_prob_list}).to_html(index=False)
+    preds = pd.DataFrame({'Age (years)': output_time_list, 'Probability': output_prob_list}).to_html(index=False) # , 'Obesity': output_class_list
     return {'preds': preds}

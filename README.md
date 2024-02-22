@@ -13,7 +13,7 @@ Reliable prediction of pediatric obesity can offer a valuable resource to the pr
 ```
 cd ./web
 docker image build -t web_image .
-docker run -p 443:443 -d web_image
+docker run -p 3000:3000 -d web_image
 
 cd ./inference
 docker image build -t engine_image .

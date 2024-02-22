@@ -3,8 +3,8 @@ import ssl
 import os
 
 
-httpd = HTTPServer(('localhost', 80), SimpleHTTPRequestHandler)
+httpd = HTTPServer(('0.0.0.0', 443), SimpleHTTPRequestHandler)
 
-# httpd.socket = ssl.wrap_socket (httpd.socket, keyfile="path/to/key.pem", certfile='path/to/cert.pem', server_side=True)
+httpd.socket = ssl.wrap_socket (httpd.socket, keyfile="./key/key.pem", certfile='./key/cert.pem', server_side=True)
 
 httpd.serve_forever()

@@ -20,7 +20,7 @@
     <div class="container-fluid d-flex justify-content-between align-items-center">
         <div>
             <img src="https://www.nemours.org/content/experience-fragments/nemours/us/en/navigation/header/master/_jcr_content/root/container/container_1613541240/image.coreimg.svg/1683290005293/nemours-logo-horizontal-condensed-v2.svg"
-                 height="40px">
+                 height="40px" hidden>
         </div>
         <div class="text-center">
             <a class="navbar-brand mb-0 h4 text-dark" href="#" style="font-size: 36px;">
@@ -30,6 +30,11 @@
         <div></div> <!-- This div is for spacing, adjust it as needed -->
     </div>
 </nav>
+
+
+<div class="container">
+<p> ***Disclaimer: This is a tool to help you understand your patient's risk for developing obesity over the next few years. This does not replace clinical judgment. Every child should be counseled on healthy lifestyle behaviors, but this tool can help you identify patients who may benefit from extra counseling. To get this prediction we included EHR data like medications, diagnoses, and measurements</p>
+</div>
 
 
 <div class="container">
@@ -53,17 +58,17 @@
                     <td id="p_dob"></td>
                 </tr>
 
-                <tr>
+                <tr hidden>
                     <td>Gender</td>
                     <td id="p_gender"></td>
                 </tr>
 
-                <tr>
+                <tr hidden>
                     <td>Race</td>
                     <td id="p_race"></td>
                 </tr>
 
-                <tr>
+                <tr hidden>
                     <td>Ethnicity</td>
                     <td id="p_ethnicity"></td>
                 </tr>
@@ -90,37 +95,34 @@
     </div>
 </div>
 
-<hr>
+<hr hidden>
 <div class="container">
     <h4>Top Contributors</h4>
 </div>
 <div class="container">
     <p id="moc_data"></p>
 </div>
-<hr>
-<hr>
-<hr>
-
-<div class="container">
+<hr hidden>
+<div class="container" hidden>
     <h4>Conditions</h4>
 </div>
-<div class="container">
+<div class="container" hidden>
     <h1 id="conds"></h1>
 </div>
-<hr>
+<hr hidden>
 
-<div class="container">
+<div class="container" hidden>
     <h4>Observations</h4>
 </div>
-<div class="container">
+<div class="container" hidden>
     <h1 id="obsrvs"></h1>
 </div>
-<hr>
+<hr hidden>
 
-<div class="container">
+<div class="container" hidden>
     <h4>Medications</h4>
 </div>
-<div class="container">
+<div class="container" hidden>
     <h1 id="meds"></h1>
 </div>
 <hr>
