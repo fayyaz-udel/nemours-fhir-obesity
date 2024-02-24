@@ -3,3 +3,4 @@ flask-cors
 fhirclient
 pandas
 numpy
+scipy

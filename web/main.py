@@ -1,7 +1,5 @@
-from http.server import HTTPServer, BaseHTTPRequestHandler, SimpleHTTPRequestHandler
 import ssl
-import os
-
+from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 httpd = HTTPServer(('0.0.0.0', 443), SimpleHTTPRequestHandler)
 

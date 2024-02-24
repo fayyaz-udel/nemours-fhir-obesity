@@ -1,12 +1,9 @@
-import os
-from math import expm1
-
-import torch
-
 # import joblib
-from util import *
+import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
+
+from util import *
 
 # from tensorflow import keras
 app = Flask(__name__)

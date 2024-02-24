@@ -22,5 +22,5 @@ docker run -p 4000:4000  -d engine_image
 
 https://launch.smarthealthit.org
 
-http://localhost:3000/launch.html
+https://localhost/launch.html
 ```   

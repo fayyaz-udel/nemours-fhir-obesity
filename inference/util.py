@@ -1,4 +1,3 @@
-import os
 import warnings
 
 import numpy as np
@@ -23,6 +22,7 @@ person_id = 820427166
 
 data_folder = "./data/"
 model_folder = "./saved_models/"
+
 
 def calculate_wfl_stage(height, weight, map_dict, sex):
     ih = height.sort_values(by=['age_dict'])  # interpolate(height)  # interpolate height
@@ -202,7 +202,7 @@ def extract_representations(processed_data, map_dict, obser_pred_wins):
     demo = extract_demo_data(processed_data, map_dict)
     enc = extract_enc_data(processed_data)
     dec = extract_dec_data(processed_data, map_dict, obser_pred_wins)
-    if len(dec): # check if there is any record in decorder representation dataframe
+    if len(dec):  # check if there is any record in decorder representation dataframe
         demo, enc, dec = duplicate(demo, enc, dec)
 
     return {"demo": demo, "enc": enc, "dec": dec}
@@ -460,11 +460,11 @@ def determine_observ_predict_windows(prrocessed_data):
 
 def load_models():
     models = {}
-    models[2] = torch.load(model_folder + 'obsNew_0.tar', map_location ='cpu')
-    models[3] = torch.load(model_folder + 'obsNew_1.tar', map_location ='cpu')
-    models[4] = torch.load(model_folder + 'obsNew_2.tar', map_location ='cpu')
-    models[5] = torch.load(model_folder + 'obsNew_3.tar', map_location ='cpu')
-    models[6] = torch.load(model_folder + 'obsNew_4.tar', map_location ='cpu')
+    models[2] = torch.load(model_folder + 'obsNew_0.tar', map_location='cpu')
+    models[3] = torch.load(model_folder + 'obsNew_1.tar', map_location='cpu')
+    models[4] = torch.load(model_folder + 'obsNew_2.tar', map_location='cpu')
+    models[5] = torch.load(model_folder + 'obsNew_3.tar', map_location='cpu')
+    models[6] = torch.load(model_folder + 'obsNew_4.tar', map_location='cpu')
 
     return models
 
@@ -479,14 +479,14 @@ def extract_ehr_history(prrocessed_data):
     b = prrocessed_data['bmi']
     b['Type'] = 'BMI'
 
-    out_df = pd.concat([m, o, c], ignore_index=True) # , b
+    out_df = pd.concat([m, o, c], ignore_index=True)  # , b
     out_df.sort_values(by=['age'], inplace=True)
     out_df = out_df[out_df['age'] >= 0]
     out_df = out_df[out_df['feat_dict'] > 0]
     out_df['age'] = out_df['age'].astype(int)
     out_df.rename(columns={'display': 'Name', 'age': 'Age (months)', 'code': 'Code'}, inplace=True)
 
-    out_df = out_df[['Age (months)', 'Type', 'Name', 'value', 'unit', 'feat_dict']] # , 'Code'
+    out_df = out_df[['Age (months)', 'Type', 'Name', 'value', 'unit']]  # , 'Code', 'feat_dict'
 
     return {"moc_data": out_df.to_html(na_rep="", justify='left', index=False)}
 
@@ -500,8 +500,19 @@ def extract_anthropometric_data(data, smax):
     observation_df.sort_values(by=['age'], inplace=True)
 
     bmi = observation_df[observation_df['code'] == '39156-5'][['age', 'value']]
+    bmi['show'] = False
+    for i in range(0, smax * 12, 6):
+        if i not in bmi['age'].values:
+            bmi = pd.concat([bmi, pd.DataFrame([{'age': i, 'value': None, 'show': True}])], ignore_index=True)
+        else:
+            bmi.loc[bmi['age'] == i, 'show'] = True
+    bmi = bmi.sort_values(by=['age'])
+    bmi.interpolate(method='linear', limit_area='inside', inplace=True)
+    bmi = bmi[bmi['show'] == True]
+    bmi['value'].replace({None: 'No Data'}, inplace=True)
+    bmi = bmi.replace({np.nan: None})
 
-    return {"bmi_x": bmi["age"].to_list() + [smax*12], "bmi_y": bmi["value"].to_list() + [None], 'smax': smax*12}
+    return {"bmi_x": bmi["age"].to_list() + [smax * 12], "bmi_y": bmi["value"].to_list() + [None], 'smax': smax * 12}
 
 
 ########################################################################################################################
@@ -615,11 +626,12 @@ def inference(data, net, obsrv_max, obs=1):
             output_class_list.append('No')
         else:
             output_class_list.append('Yes')
-        output_prob_list.append(prob[i][:, 1].data.cpu().numpy()[0])
+        output_prob_list.append(round(prob[i][:, 1].data.cpu().numpy()[0], 2))
         output_time_list.append(obsrv_max + i + 1)
     ########################################################################
     # for i in range(0, len(prob) - 1):  # time
     #     print(prob[i][:, 1].data.cpu().numpy())[0]  # prob of class 1 (obesity) ---- [0] is for the first patient
     ########################################################################
-    preds = pd.DataFrame({'Age (years)': output_time_list, 'Probability': output_prob_list}).to_html(index=False) # , 'Obesity': output_class_list
+    preds = pd.DataFrame({'Age (years)': output_time_list, 'Probability of Obesity': output_prob_list}).to_html(
+        index=False, justify='left')  # , 'Obesity': output_class_list
     return {'preds': preds}
