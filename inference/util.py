@@ -233,8 +233,13 @@ def extract_demo_data(data, map_dict):
     # Sex_list = ['Female', 'Male']
     # payer_y_list = ['Medicaid/sCHIP', 'Private/Commercial', 'NI']
     # HL7_race_list =     ["American Indian or Alaska Native", "Asian", "Black or African American", "Native Hawaiian or Other Pacific Islander", "White", "Other Race"]
-    eth = data["patient"].extension[1].extension[0].valueCoding.display
-    race = data["patient"].extension[0].extension[0].valueCoding.display
+    if data["patient"].extension:
+        eth = data["patient"].extension[1].extension[0].valueCoding.display
+        race = data["patient"].extension[0].extension[0].valueCoding.display
+    else:
+        eth, race = 'NI', 'NI'
+        
+        
     sex = data["patient"].gender.capitalize()
     payer = 'Medicaid/sCHIP'  # TODO
     coi = 'COI_2'  # TODO
@@ -479,14 +484,14 @@ def extract_ehr_history(prrocessed_data):
     b = prrocessed_data['bmi']
     b['Type'] = 'BMI'
 
-    out_df = pd.concat([m, o, c], ignore_index=True)  # , b
+    out_df = pd.concat([m, c], ignore_index=True)  # , b, , o
     out_df.sort_values(by=['age'], inplace=True)
     out_df = out_df[out_df['age'] >= 0]
     out_df = out_df[out_df['feat_dict'] > 0]
     out_df['age'] = out_df['age'].astype(int)
     out_df.rename(columns={'display': 'Name', 'age': 'Age (months)', 'code': 'Code'}, inplace=True)
 
-    out_df = out_df[['Age (months)', 'Type', 'Name', 'value', 'unit']]  # , 'Code', 'feat_dict'
+    out_df = out_df[['Age (months)', 'Type', 'Title']]  # , 'Code', 'feat_dict', , 'value', 'unit'
 
     return {"moc_data": out_df.to_html(na_rep="", justify='left', index=False)}
 

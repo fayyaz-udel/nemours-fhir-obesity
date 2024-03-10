@@ -26,8 +26,8 @@ function get_demographic() {
             document.getElementById("p_last_name").innerHTML = pt.name[0].family;
             document.getElementById("p_dob").innerHTML = pt.birthDate;
             document.getElementById("p_gender").innerHTML = pt.gender;
-            document.getElementById("p_ethnicity").innerHTML = pt.extension[1].extension[0].valueCoding.display;
-            document.getElementById("p_race").innerHTML = pt.extension[0].extension[0].valueCoding.display;
+            //document.getElementById("p_ethnicity").innerHTML = pt.extension[1].extension[0].valueCoding.display;
+            //document.getElementById("p_race").innerHTML = pt.extension[0].extension[0].valueCoding.display;
             return pt;
         });
 
