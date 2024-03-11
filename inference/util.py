@@ -489,7 +489,7 @@ def extract_ehr_history(prrocessed_data):
     out_df = out_df[out_df['age'] >= 0]
     out_df = out_df[out_df['feat_dict'] > 0]
     out_df['age'] = out_df['age'].astype(int)
-    out_df.rename(columns={'display': 'Name', 'age': 'Age (months)', 'code': 'Code'}, inplace=True)
+    out_df.rename(columns={'display': 'Title', 'age': 'Age (months)', 'code': 'Code'}, inplace=True)
 
     out_df = out_df[['Age (months)', 'Type', 'Title']]  # , 'Code', 'feat_dict', , 'value', 'unit'
 
