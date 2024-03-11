@@ -86,13 +86,13 @@
         <div class="container">
             <p id="preds"></p>
         </div>
-        <div class="container">
+        <div class="container" hidden>
             <input onclick="toggleAll()" type="button" value="Show more information" id="btn">
         </div>
     </div>
 
 
-    <div style="width: 75%; float:left;" id="m3">
+    <div style="width: 75%; float:left;" id="m3" hidden>
         <div class="container">
             <h4>BMI History</h4>
         </div>
@@ -182,8 +182,8 @@
         }).catch(function (error) {
             console.error('An error occurred:', error);
         });
-        toggleAll();
-        toggleAll();
+        // toggleAll();
+        // toggleAll();
     }
 
     main();
