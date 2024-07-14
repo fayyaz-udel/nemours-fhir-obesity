@@ -244,7 +244,7 @@
 
             <p id="pop3" style="margin-left: 0; padding-left: 0;display: inline-block;"></p>
 
-            <p id="curve"></p>
+            <img id="curve" src=assets/chart.png width="450">
             <br>
             <!--            <button type="button" id="introbutton">Switch to weight curve</button>-->
             <br>
@@ -400,19 +400,22 @@
 <script type="text/javascript">
 
     var coll = document.getElementsByClassName("collapsible");
-    var i;
+var i;
 
-    for (i = 0; i < coll.length; i++) {
-        coll[i].addEventListener("click", function () {
-            this.classList.toggle("active");
-            var content = this.nextElementSibling;
-            if (content.style.display === "block") {
-                content.style.display = "none";
-            } else {
-                content.style.display = "block";
-            }
-        });
-    }
+for (i = 0; i < coll.length; i++) {
+    coll[i].addEventListener("click", function() {
+        this.classList.toggle("active");
+        var content = this.nextElementSibling;
+        var plusMinus = this.querySelector(".plus-minus"); // Access the plus-minus span
+        if (content.style.display === "block") {
+            content.style.display = "none";
+            plusMinus.textContent = '+'; // Set text to +
+        } else {
+            content.style.display = "block";
+            plusMinus.textContent = '-'; // Set text to -
+        }
+    });
+}
 
 
     const queryString = window.location.search;

@@ -68,8 +68,6 @@ def mock():
                     <li> Abilify tablet</li>
                 </ul>'''
 
-    curve = '''<img id="curve" src=assets/g_curve.jpeg width="450">'''
-
     pop3 = '''
     <a href="./popup3.html?name=John" target="_blank">
             <img src="assets/icon/info.png" alt="Button Image" height="25px"
@@ -81,7 +79,6 @@ def mock():
                    'name': name,
                    'dob': dob,
                    'risk': risk,
-                   'curve': curve,
                    'pop3': pop3}
 
     return output_dict

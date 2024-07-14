@@ -175,7 +175,6 @@ function get_server_response(data) {
     document.getElementById("risk").innerHTML = data['risk'];
     document.getElementById("name").innerHTML = data['name'];
     document.getElementById("dob").innerHTML = data['dob'];
-    document.getElementById("curve").innerHTML = data['curve'];
     document.getElementById("pop3").innerHTML = data['pop3'];
 
 
