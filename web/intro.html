@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Early Weight Gain Prediction Tool</title>
+    <script src="https://cdn.jsdelivr.net/npm/fhirclient/build/fhir-client.js"></script>
+    <script type="text/javascript" src="js/functions.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="js/loading-bar.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+ <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+    <link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet'>
+    <link rel="stylesheet" type="text/css" href=".\css\loading-bar.css"/>
+    <style>
+        /* Basic styling for the divisions */
+        body {
+            background-color: #FEF9EF; /* New background color */
+            margin: 0; /* Remove default margin */
+            padding: 0; /* Remove default padding */
+	    font-family: "Montserrat";
+        }
+
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .header {
+            background-color: #0D3F6B;
+            padding: 10px;
+            width: 100%; /* Set width to 100% */
+            top: 0; /* Align to the top */
+            z-index: 1000; /* Ensure it's above other elements */
+        }
+
+.vertical-center {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+
+        .footer {
+            font-size: 0.8em;
+	    background-color: #0D3F6B;
+            padding: 1px;
+            width: 100%; /* Set width to 100% */
+            margin-top: 15px;
+            bottom: 0; /* Align to the top */
+	    left: 0;
+        }
+
+        h2 {
+            font-family: "Montserrat";
+            margin: 0; /* Remove default margin */
+            text-align: center; /* Center align text */
+            font-weight: bold;
+        }
+
+        .header h1 {
+            font-family: "Montserrat";
+            font-weight: bold;
+            color: white;/* New header text color */
+            margin: 0; /* Remove default margin */
+            text-align: center; /* Center align text */
+        }
+
+        .top {
+            padding: 0px;
+            margin-top:10px; /* Adjust margin-top to increase distance */
+            text-align: left;
+        }
+
+        .bottom {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .bottom div {
+            width: 50%; /* Adjust as needed */
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th {
+            background-color: #0D3F6B;
+            color: white;
+	    border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+
+        ul {
+            text-align: left;
+        }
+
+        h4 {
+            font-family: "Montserrat";
+            margin: 0; /* Remove default margin */
+            text-align: left; /* Center align text */
+       }
+
+	p {
+		font-family: "Montserrat";
+	}
+
+	li {
+		font-family: "Montserrat";
+	}
+
+
+
+	  #submitButton {
+    background-color: #0D3F6B;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+    </style>
+</head>
+<body>
+
+<div class="header" style="text-align: center;">
+    <h1 style="display: inline; border-right: 10em;">Early Weight Gain Prediction Tool</h1>
+</div>
+
+
+<div class="container">
+    <!-- Top Divisions -->
+    <div class="top">
+	   
+	<p style="text-align: left;font-size: 20px; border-bottom: 3px;"> <b>Who this is for:</b> This is a tool to help you understand your patient’s risk for developing obesity (BMI over the 95th percentile) over the next 3 years.   This tool is designed for children ages 2 to 7 years because we know that these early years are critical.  This tool is also designed for children of any weight, but can be especially helpful for children who are currently at a healthy weight but might be at risk for obesity.  Studies show that we are identifying these children too late.</p>
+	
+	<p  style="text-align: left;font-size: 20px; border-bottom: 3px;"><b>How to use this:</b>  Every child should be counseled on healthy lifestyle behaviors, but this tool may help you identify patients who may benefit from extra counseling. Any risk for obesity should prompt extra counseling.</p>
+	
+	<p  style="text-align: left;font-size: 20px; border-bottom: 3px;"><b>How do we get this risk estimate:</b>  To get the prediction, we included electronic health record data like medications, diagnoses, family history, and measurements.  The main factor that predicts obesity is rate of weight gain, but we list current medications and conditions that might also be affecting a child’s risk. <b> This tool was 93% accurate in our rigorous testing so you can be confident in its results.</b></p>
+    </div>
+
+
+
+
+<br>
+
+<script type="text/javascript">
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const patId = urlParams.get('patient');
+
+    async function main(patId) {
+        get_demographic(patId).then(function (pt) {
+            get_meds(patId).then(function (med) {
+                get_conds(patId).then(function (cond) {
+                    get_obsrvs(patId).then(async function (obsrv) {
+                        data = {
+                            'patient': pt,
+                            'medications': med,
+                            'conditions': cond,
+                            'observations': obsrv
+                        }
+                        anthropometic = await communicate_server(data);
+                        get_server_response(anthropometic);
+                    })
+                })
+            });
+        }).catch(function (error) {
+            console.error('An error occurred:', error);
+        });
+    }
+
+    main(patId);
+
+</script>
+</body>
+</html>
+

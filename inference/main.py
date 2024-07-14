@@ -31,7 +31,7 @@ def index():
         inference_data = inference(represantation_data, net, obser_pred_wins["obser_max"])
 
     anthropometric_data = extract_anthropometric_data(prrocessed_data, obser_pred_wins["obser_max"])
-    ehr_history = extract_ehr_history(prrocessed_data)
+    ehr_history = extract_ehr_history(prrocessed_data, obser_pred_wins["obser_max"]*12)
 
     response_dict = {**anthropometric_data, **inference_data, **ehr_history}
     #########################################################################

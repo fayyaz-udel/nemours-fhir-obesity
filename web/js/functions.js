@@ -1,7 +1,8 @@
 function communicate_server(data) {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", "https://34.27.255.204:4000");
+        xhr.open("POST", "https://wlmresfhr500.nemours.org/nemours-fhir-obesity/inference/");
+        //xhr.open("POST", "https://34.27.255.204:4000");
         // xhr.open("POST", "https://localhost:4000");
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.onload = function () {
@@ -19,15 +20,11 @@ function communicate_server(data) {
 }
 
 
-function get_demographic() {
-    return FHIR.oauth2.ready().then(function (client) {
-        return client.patient.read().then(function (pt) {
-            document.getElementById("p_first_name").innerHTML = pt.name[0].given;
-            document.getElementById("p_last_name").innerHTML = pt.name[0].family;
-            document.getElementById("p_dob").innerHTML = pt.birthDate;
-            document.getElementById("p_gender").innerHTML = pt.gender;
-            //document.getElementById("p_ethnicity").innerHTML = pt.extension[1].extension[0].valueCoding.display;
-            //document.getElementById("p_race").innerHTML = pt.extension[0].extension[0].valueCoding.display;
+function get_demographic(pat_id) {
+	return FHIR.oauth2.ready().then(function (client) {
+        return client.request("/Patient?_id="+ pat_id).then(function (pt) {
+	    pt = pt.entry[0].resource;
+	    document.getElementById("name_dob").innerHTML = "<b> Name: </b>" + pt.name[0].given + " " + pt.name[0].family + "<br><b>DOB: </b>" + pt.birthDate.substring(5,10)+ '-' + pt.birthDate.substring(0,4);
             return pt;
         });
 
@@ -38,10 +35,9 @@ function get_demographic() {
 }
 
 
-function get_meds() {
+function get_meds(pat_id){
     return FHIR.oauth2.ready().then(function (client) {
-        return client.patient.read().then(function (pt) {
-            return client.request("/MedicationRequest?patient=" + client.patient.id, {
+            return client.request("/MedicationRequest?patient=" + pat_id, {
                 resolveReferences: ["medicationReference"],
                 graph: true,
             })
@@ -73,19 +69,16 @@ function get_meds() {
 
                     return meds;
                 });
-        });
     }).catch(function (error) {
         document.getElementById("meds").innerText = error.stack;
         throw error;
     });
 }
 
-function get_conds() {
+function get_conds(pat_id){
     return FHIR.oauth2.ready().then(function (client) {
-        return client.patient.read().then(function (pt) {
-            const patientId = pt.id;  // Assuming 'id' is the correct property
 
-            return client.request("/Condition?patient=" + patientId, {
+            return client.request("/Condition?patient=" + pat_id, {
                 resolveReferences: ["conditionReference"],
                 graph: true,
             })
@@ -117,7 +110,6 @@ function get_conds() {
 
                     return conds;
                 });
-        });
     }).catch(function (error) {
         document.getElementById("conds").innerText = error.stack;
         throw error;
@@ -125,12 +117,10 @@ function get_conds() {
 }
 
 
-function get_obsrvs() {
+function get_obsrvs(pat_id) {
     return FHIR.oauth2.ready().then(function (client) {
-        return client.patient.read().then(function (pt) {
-            const patientId = pt.id;
 
-            return client.request(`/Observation?patient=${patientId}`, {
+            return client.request("/Observation?patient=" + pat_id, {
                 resolveReferences: ["medicationReference"],
                 graph: true,
             })
@@ -171,7 +161,6 @@ function get_obsrvs() {
 
                     return obrvs;
                 });
-        });
     }).catch(function (error) {
         document.getElementById("obsrvs").innerText = error.stack;
         throw error;
@@ -184,7 +173,7 @@ function get_server_response(data) {
 
     document.getElementById("moc_data").innerHTML = data['moc_data'];
     document.getElementById("preds").innerHTML = data['preds'];
-
+    console.log(data['preds'])
     const bmiChartCtx = document.getElementById('bmiChart');
     new Chart(bmiChartCtx, {
         type: 'line',
@@ -198,7 +187,7 @@ function get_server_response(data) {
         },
         options: {
             scales: {
-                x: {
+		   x: {
                     title: {
                         display: true,
                         text: 'Age (months)',

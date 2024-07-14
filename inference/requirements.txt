@@ -4,3 +4,4 @@ fhirclient
 pandas
 numpy
 scipy
+torch==2.2.0

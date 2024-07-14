@@ -1,171 +1,482 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Early Weight Gain Prediction Tool</title>
     <script src="https://cdn.jsdelivr.net/npm/fhirclient/build/fhir-client.js"></script>
-    <script type="text/javascript" src="\js\functions.js"></script>
+    <script type="text/javascript" src="js/functions.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="js/loading-bar.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"/>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href=".\css\style.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+    <link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet'>
+    <link rel="stylesheet" type="text/css" href=".\css\loading-bar.css"/>
+    <style>
+
+
+        .collapsible {
+            background-color: #0D3F6B;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            outline: none;
+            font-size: 20px;
+            border: 1px solid;
+            padding: 5px;
+            box-shadow: 5px 10px 18px antiquewhite;
+            font-family: "Montserrat", serif;
+            margin: 0; /* Remove default margin */
+            text-align: center; /* Align text to the left */
+            font-weight: bold;
+            position: relative; /* Ensure absolute positioning works */
+        }
+
+        .collapsible .plus-minus {
+            position: absolute;
+            right: 10px; /* Adjust this value to move the signs closer or further from the edge */
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .collapsible img {
+            vertical-align: middle; /* Align the image vertically in the middle */
+            margin-left: 10px; /* Add space between text and image */
+        }
+
+        /*.active, .collapsible:hover {*/
+        /*    background-color: #555;*/
+        /*}*/
+
+        .content {
+
+            width: 100%;
+            /*padding: 0 18px;*/
+            display: none;
+            overflow: hidden;
+            background-color: #FEF9EF;
+        }
+
+
+        body {
+            background-color: #FEF9EF; /* New background color */
+            margin: 0; /* Remove default margin */
+            padding: 0; /* Remove default padding */
+            font-family: "Montserrat";
+        }
+
+        .container {
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .header {
+            background-color: #0D3F6B;
+            padding: 10px;
+            width: 100%; /* Set width to 100% */
+            top: 0; /* Align to the top */
+            z-index: 1000; /* Ensure it's above other elements */
+        }
+
+        .vertical-center {
+            margin: 0;
+            position: absolute;
+            top: 50%;
+            -ms-transform: translateY(-50%);
+            transform: translateY(-50%);
+        }
+
+        .footer {
+            font-size: 0.8em;
+            background-color: #0D3F6B;
+            padding: 1px;
+            width: 100%; /* Set width to 100% */
+            margin-top: 15px;
+            bottom: 0; /* Align to the top */
+            left: 0;
+        }
+
+        h2 {
+            font-family: "Montserrat";
+            color: #0D3F6B;
+            margin: 0; /* Remove default margin */
+            text-align: center; /* Center align text */
+            font-weight: bold;
+            font-size: 22px;
+        }
+
+        .header h1 {
+            font-family: "Montserrat";
+            font-weight: bold;
+            color: white; /* New header text color */
+            margin: 0; /* Remove default margin */
+            text-align: center; /* Center align text */
+        }
+
+        .top {
+            padding: 0px;
+            margin-top: 10px; /* Adjust margin-top to increase distance */
+            text-align: left;
+        }
+
+        .bottom {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .bottom div {
+            width: 100%; /* Adjust as needed */
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th {
+            background-color: #0D3F6B;
+            color: white;
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+
+        ul {
+            text-align: left;
+        }
+
+        h4 {
+            font-family: "Montserrat";
+            margin: 0; /* Remove default margin */
+            text-align: left; /* Center align text */
+        }
+
+        p {
+            font-family: "Montserrat";
+        }
+
+        li {
+            font-family: "Montserrat";
+        }
+
+
+        #submitButton {
+            background-color: #0D3F6B;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+
+        #introbutton {
+            margin-left: auto;
+            margin-right: auto;
+            background-color: #0D3F6B;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            margin: 5px;
+            border-radius: 5px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .button {
+            background-color: #0D3F6B;
+            border: none;
+            color: white;
+
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 5px;
+        }
+
+        .button5 {
+            border-radius: 40%;
+        }
+
+
+    </style>
 </head>
-
-
 <body>
 
+<div class="header" style="text-align: center;">
+    <h1 style="display: inline; border-right: 10em;">Early Weight Gain Prediction Tool</h1>
+</div>
+<div class="container">
 
-<nav class="navbar" style="background-color: gold;">
-    <div class="container-fluid d-flex justify-content-between align-items-center">
-        <div>
-            <img src="https://www.nemours.org/content/experience-fragments/nemours/us/en/navigation/header/master/_jcr_content/root/container/container_1613541240/image.coreimg.svg/1683290005293/nemours-logo-horizontal-condensed-v2.svg"
-                 height="40px" hidden>
-        </div>
-        <div class="text-center">
-            <a class="navbar-brand mb-0 h4 text-dark" href="#" style="font-size: 36px;">
-                Early Weight Gain Prediction Tool
+    <div style="margin-top: 50px;">
+        <p id="name_dob0" style="text-align: left;"><b>Name:</b> Truman Doe</p>
+        <p id="name_dob1" style="text-align: left;"><b>DOB:</b> 12-22-2019</p>
+
+    </div>
+    <!-- Bottom Divisions -->
+    <div class="bottom">
+
+        <div style="margin-left: 0; padding-left: 0; width: 500px">
+            <h2 style="display: inline-block;">Truman’s predicted growth over time</h2>
+            <!--            <button type="button" id="popup1" class="button button5">i</button>-->
+            <a href="">
+                <img src="assets/icon/info.png" alt="Button Image" height="25px"
+                     style="margin-bottom: 10px; margin-left: 10px;">
             </a>
+            <!--            <p id="preds"></p>-->
+            <!--	    <p> Truman has a 1 in 4 chance of developing an -->
+            <!--unhealthy weight in one year and an almost 1 in 2 chance of developing an unhealthy weight by the time he’s seven without making -->
+            <!--lifestyle changes</p>-->
+            <img src=assets/g_curve.jpeg width="450">
+            <br>
+            <button type="button" id="introbutton">Switch to weight curve</button>
+            <br>
+
+            <!--	    <p id="moc_data" style="margin-top: 0;"></p>-->
+
+
         </div>
-        <div></div> <!-- This div is for spacing, adjust it as needed -->
+        <div>
+
+
+            <button type="button" class="collapsible" style="display: inline-block;">
+                <span>What do these results mean?</span>
+                <span class="plus-minus">+</span>
+            </button>
+            <div class="content">
+                <!--                <h2 style="margin-bottom: 15px; margin-top: 30px;">What do these results mean?</h2>-->
+                <ul>
+                    <li>As part of every well child check, we like to see how a child is growing and talk about healthy
+                        behaviors.
+                    </li>
+                    <li>Experts say that for most children maintaining a BMI (weight for height) less than the 95th
+                        percentile is important to
+                        avoiding
+                        health risks like diabetes and heart disease.
+                    </li>
+                    <li><b>Truman</b> is currently at a <b>healthy weight</b>, but his <b>rate of weight gain is
+                        faster</b>
+                        than we
+                        would
+                        expect.
+                    </li>
+                    <li>He has a <b>1 in 2</b> chance of developing an unhealthy weight by the <b> age of 7</b>.
+                    </li>
+
+                    <li>Healthy lifestyle changes can help <b>Truman</b> maintain a healthy
+                        weight and we
+                        have some great resources to share!
+                    </li>
+                </ul>
+                <!--            <button id="submitButton" type="button">Click here for more ways to have conversations about healthy-->
+                <!--                lifestyles-->
+                <!--            </button>-->
+
+                <!--        </div>-->
+
+                <!--        <div style="background: #0D3F6B; color: white; width: 1050px">-->
+            </div>
+            <button type="button" class="collapsible" style="display: inline-block;">
+                <span>Risk Factors</span>
+                <a href="">
+                    <img src="assets/icon/infow.png" alt="Button Image" height="25px"
+                         style="margin-bottom: 4px; margin-left: 10px">
+                </a>
+                <span class="plus-minus">+</span>
+            </button>
+            <!--            <button type="button" class="collapsible" style="display: inline-block;">Risk Factors +-</button>-->
+            <div class="content">
+
+                <!--                <h2 style="margin-bottom: 15px; margin-top: 30px;display: inline-block;"></h2>-->
+                <!--            <button id="popup2" type="button" class="button button5">i</button>-->
+                <p> Based on electronic health record data, rate of weight gain is impacting Truman’s risk. Other
+                    factors
+                    are:</p>
+                <ul>
+                    <li> Abilify tablet 10 mg daily</li>
+                </ul>
+                <br>
+
+            </div>
+            <button type="button" class="collapsible" style="display: inline-block;">
+                <span>Healthy Lifestyle Resources</span>
+                <span class="plus-minus">+</span>
+            </button>
+            <div class="content">
+                <!--                <h2 style="margin-bottom: 15px;">Healthy Lifestyle Resources</h2>-->
+                <img src="assets/icon/diet.png" width="22" style="margin: 1px; display: inline; float: left;">
+                <h4 style="font-weight: bold">Healthy Eating</h4>
+                <ul>
+                    <li>Video: Healthy Recipes
+                        <a href="https://www.youtube.com/playlist?list=PLIkgAHHJ_KGh5lSIjzO1UJdZBEfbMZC2V">[YouTube
+                            (EN)]</a>
+                        <a href="https://www.youtube.com/playlist?list=PLIkgAHHJ_KGh5lSIjzO1UJdZBEfbMZC2V">[Add to
+                            AVS]</a>
+                        <a href="https://www.youtube.com/playlist?list=PLIkgAHHJ_KGh5lSIjzO1UJdZBEfbMZC2V">[Open]</a>
+
+                    </li>
+                    <li>Website: Nutrition Tips
+                        <a href="https://healthychildren.org/English/healthy-living/nutrition/Pages/default.aspx">[EN -
+                            add
+                            to AVS]</a>
+
+                        <a href="https://healthychildren.org/spanish/healthy-living/nutrition/paginas/default.aspx">[SP
+                            -
+                            add to AVS]</a>
+                        <a href"">[Open]</a>
+                    </li>
+                    <li>Handout: Healthy Kitchen
+                        <a href="assets/Healthy%20Kitchen%20FINAL%2010.12.21.pdf">[EN - add to AVS]</a>
+                        <a href="assets/spanish/Healthy%20Kitchen%20FINAL%20SPANISH%2010.12.21.pdf">[SP - add to
+                            AVS]</a>
+                        <a href="">[Open]</a>
+
+                    </li>
+                    <li>Handout: MyPlate
+                        <a href="assets/J9046_Healthy_Plate_Tearpads_PRINT-FIN.pdf">[EN - add to AVS]</a>
+                        <a href="assets/spanish/J9043_Spanish_Healthy_Plate_Tearpad-FIN-1.pdf">[SP - add to AVS]</a>
+                        <a href="">[Open]</a>
+
+                    </li>
+                </ul>
+                <img src="assets/icon/behaviour.png" width="20" style="margin: 1px; display: inline; float: left;">
+                <h4 style="font-weight: bold">Mood and Behavior</h4>
+                <ul>
+                    <li>Website: Your Child’s Sleep
+
+                        <a href="https://kidshealth.org/en/parents/general/sleep">[EN - add to AVS]</a>
+                        <a href="https://kidshealth.org/es/parents/general/sleep">[SP - add to AVS]</a>
+                        <a href="">[Open]</a>
+
+                    </li>
+                    <li>Website: Your Child’s Feelings
+                        <a href="https://kidshealth.org/en/kids/feeling/">[EN - add to AVS]</a>
+                        <a href="https://kidshealth.org/es/kids/feeling/">[SP - add to AVS]</a>
+                        <a href="">[Open]</a>
+                    </li>
+                    <li>Handout: Mealtime Problems
+                        <a href=assets/Mealtime%20Problems%20English%204.1.22.pdf">[EN - add to AVS]</a>
+                        <a href=assets/spanish/Mealtime%20Problems%20Spanish%204.1.22.pdf">[SP - add to AVS]</a>
+                        <a href="">{Print]</a>
+                    </li>
+
+                </ul>
+                <img src="assets/icon/triangle.png" width="25"
+                     style="margin: 1px; display: inline; float: left; color: #0D3F6B">
+                <h4 style="font-weight: bold">Being Active</h4>
+                <ul>
+                    <li>Video playlist: Fitness Videos for your Child
+                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[YouTube
+                            (EN)]</a>
+                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[Add to
+                            AVS]</a>
+                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[Open]</a>
+
+
+                    </li>
+                    <li>Website: Helping Your Child Stay Fit
+                        <a href="https://kidshealth.org/en/kids/center/fitness-nutrition-center.html#catfit">[EN - add
+                            to
+                            AVS]</a>
+                        <a href="https://kidshealth.org/es/kids/stay-healthy/#catfit">[SP - add to AVS]</a>
+                        <a href="">[Open]</a>
+
+                    </li>
+                    <li>Handout: Strength and Movement Activities to Try at Home
+                        <a href="assets/J8901_Enterprise_App_Dashboard_Exercise_Handout_Rebrand_V1.pdf">[EN - add to
+                            AVS]</a>
+                        <a href="assets/spanish/J8946_Enterprise_Spanish_App_Dashboard_Exercise_Handout-FINAL_5.24.22.pdf">[SP
+                            - add to AVS]</a>
+                        <a href="">[Open]</a>
+                    </li>
+                </ul>
+
+
+                <img src="assets/icon/comm.png" width="25" style="margin: 1px; display: inline; float: left;">
+                <h4 style="font-weight: bold">Community Resources</h4>
+
+                <ul>
+                    <li>Website: Women Infants and Childrens program
+                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[EN – add to
+                            AVS]</a>
+                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[SP – add to
+                            AVS]</a>
+                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[Open]</a>
+
+                    </li>
+                    <li>Website: 211
+                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[EN – add to
+                            AVS]</a>
+                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[SP – add to
+                            AVS]</a>
+                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[Open]</a>
+
+                    </li>
+                </ul>
+                <p align="left" style="margin-left: 10px">AVS= After visit summary/patient instructions</p>
+            </div>
+
+
+        </div>
+
     </div>
-</nav>
-
-
-<div class="container">
-    <p> This is a tool to help you understand your patient's risk for developing obesity over the next
-        few years. This does not replace clinical judgment. Every child should be counseled on healthy lifestyle
-        behaviors, but this tool can help you identify patients who may benefit from extra counseling. To get this
-        prediction we included EHR data like medications, diagnoses, and measurements. This application is only designed
-        for children of age 2 to 7 years old.</p>
 </div>
-
-
-<div class="container">
-    <div style="width: 25%; float:right;">
-        <div class="container">
-            <h4>Demographics</h4>
-        </div>
-        <div class="container">
-            <table>
-                <tr>
-                    <td>First Name</td>
-                    <td id="p_first_name"></td>
-                </tr>
-
-                <tr>
-                    <td>Last Name</td>
-                    <td id="p_last_name"></td>
-                </tr>
-                <tr>
-                    <td>DOB</td>
-                    <td id="p_dob"></td>
-                </tr>
-
-                <tr hidden>
-                    <td>Gender</td>
-                    <td id="p_gender"></td>
-                </tr>
-
-                <tr hidden>
-                    <td>Race</td>
-                    <td id="p_race"></td>
-                </tr>
-
-                <tr hidden>
-                    <td>Ethnicity</td>
-                    <td id="p_ethnicity"></td>
-                </tr>
-            </table>
-        </div>
-
-
-        <div class="container">
-            <h4>Predictions for 3 years from now</h4>
-        </div>
-        <div class="container">
-            <p id="preds"></p>
-        </div>
-        <div class="container" hidden>
-            <input onclick="toggleAll()" type="button" value="Show more information" id="btn">
-        </div>
-    </div>
-
-
-    <div style="width: 75%; float:left;" id="m3" hidden>
-        <div class="container">
-            <h4>BMI History</h4>
-        </div>
-        <div class="container">
-            <canvas id="bmiChart"></canvas>
-        </div>
-    </div>
+<div hidden>
+    <p id="conds"></p>
+    <p id="obsrvs"></p>
+    <p id="meds"></p>
 </div>
-
-
-<hr id="m0">
-<div class="container" id="m1" style="align-content: center">
-    <h4 style="text-align: center">Top Contributors</h4>
-</div>
-
-<div class="container" id="m2">
-    <p id="moc_data"></p>
-</div>
-
-<!--------------------------------------------------------------------------------------------------------------------->
-<div class="container" hidden>
-    <h4>Conditions</h4>
-</div>
-<div class="container" hidden>
-    <h1 id="conds"></h1>
-</div>
-<hr hidden>
-
-<div class="container" hidden>
-    <h4>Observations</h4>
-</div>
-<div class="container" hidden>
-    <h1 id="obsrvs"></h1>
-</div>
-<hr hidden>
-
-<div class="container" hidden>
-    <h4>Medications</h4>
-</div>
-<div class="container" hidden>
-    <h1 id="meds"></h1>
-</div>
-<hr>
-<!--------------------------------------------------------------------------------------------------------------------->
 
 <script type="text/javascript">
-    function toggleText(id) {
-        var e = document.getElementById(id);
-        if (e.style.display == 'block')
-            e.style.display = 'none';
-        else
-            e.style.display = 'block';
+
+    var coll = document.getElementsByClassName("collapsible");
+    var i;
+
+    for (i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function () {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.display === "block") {
+                content.style.display = "none";
+            } else {
+                content.style.display = "block";
+            }
+        });
     }
 
-    function toggleAll() {
 
-        var elem = document.getElementById("btn");
-        console.log(elem.value);
-        if (elem.value === "Show more information") elem.value = "Show less information";
-        else elem.value = "Show more information";
-        toggleText('m0');
-        toggleText('m1');
-        toggleText('m2');
-        toggleText('m3');
-    }
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const patId = urlParams.get('patient');
 
-    async function main() {
-
-
-        get_demographic().then(function (pt) {
-            get_meds().then(function (med) {
-                get_conds().then(function (cond) {
-                    get_obsrvs().then(async function (obsrv) {
+    async function main(patId) {
+        get_demographic(patId).then(function (pt) {
+            get_meds(patId).then(function (med) {
+                get_conds(patId).then(function (cond) {
+                    get_obsrvs(patId).then(async function (obsrv) {
                         data = {
                             'patient': pt,
                             'medications': med,
@@ -177,17 +488,14 @@
                     })
                 })
             });
-
-
         }).catch(function (error) {
             console.error('An error occurred:', error);
         });
-        // toggleAll();
-        // toggleAll();
     }
 
-    main();
+    main(patId);
 
 </script>
 </body>
 </html>
+

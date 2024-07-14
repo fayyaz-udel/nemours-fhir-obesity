@@ -20,8 +20,8 @@ importlib.reload(model)
 
 person_id = 820427166
 
-data_folder = "./data/"
-model_folder = "./saved_models/"
+data_folder = "/var/www/nemours-fhir-obesity/inference/data/"
+model_folder = "/var/www/nemours-fhir-obesity/inference/saved_models/"
 
 
 def calculate_wfl_stage(height, weight, map_dict, sex):
@@ -69,13 +69,13 @@ def process_input(data, map_dict):
 
     if data['medications']:
         for medication in data['medications']:
-            medication_list.append(MedicationRequest(medication["resource"]))
+            medication_list.append(MedicationRequest(medication["resource"], False))
     if data['observations']:
         for observation in data['observations']:
-            observation_list.append(Observation(observation["resource"]))
+            observation_list.append(Observation(observation["resource"], False))
     if data['conditions']:
         for condition in data['conditions']:
-            condition_list.append(Condition(condition["resource"]))
+            condition_list.append(Condition(condition["resource"], False))
     patient = Patient(data['patient'])
     ####################################################################################################################
     medication_df = pd.DataFrame(columns=['system', 'code', 'display', 'date'])
@@ -474,7 +474,7 @@ def load_models():
     return models
 
 
-def extract_ehr_history(prrocessed_data):
+def extract_ehr_history(prrocessed_data, age_in_month):
     m = prrocessed_data['medications']
     m['Type'] = 'Medication'
     o = prrocessed_data['observations']
@@ -486,14 +486,18 @@ def extract_ehr_history(prrocessed_data):
 
     out_df = pd.concat([m, c], ignore_index=True)  # , b, , o
     out_df.sort_values(by=['age'], inplace=True)
-    out_df = out_df[out_df['age'] >= 0]
+    out_df = out_df[out_df['age'] >= age_in_month - 12]
     out_df = out_df[out_df['feat_dict'] > 0]
     out_df['age'] = out_df['age'].astype(int)
     out_df.rename(columns={'display': 'Title', 'age': 'Age (months)', 'code': 'Code'}, inplace=True)
 
-    out_df = out_df[['Age (months)', 'Type', 'Title']]  # , 'Code', 'feat_dict', , 'value', 'unit'
-
-    return {"moc_data": out_df.to_html(na_rep="", justify='left', index=False)}
+    out_df = out_df[['Title']]  # , 'Code', 'feat_dict', , 'value', 'unit'
+    
+    out_str = ""
+    for i in out_df['Title'].tolist():
+        out_str += "<li>" + i + "</li>"
+    out_str = "<ul>" + out_str + "</ul>"
+    return {"moc_data": out_str}
 
 
 def extract_anthropometric_data(data, smax):
@@ -631,12 +635,29 @@ def inference(data, net, obsrv_max, obs=1):
             output_class_list.append('No')
         else:
             output_class_list.append('Yes')
-        output_prob_list.append(round(prob[i][:, 1].data.cpu().numpy()[0], 2))
+
+        chance = format(round(prob[i][:, 1].data.cpu().numpy()[0]*100,0))
+        output_prob_list.append('<div class="w3-container w3-blue w3-round-large" style="width:{}%;padding: 2px; margin: 1px;">{}%</div>'.format(chance, chance))
+        #output_prob_list.append(round(prob[i][:, 1].data.cpu().numpy()[0], 2)*100)
         output_time_list.append(obsrv_max + i + 1)
     ########################################################################
     # for i in range(0, len(prob) - 1):  # time
     #     print(prob[i][:, 1].data.cpu().numpy())[0]  # prob of class 1 (obesity) ---- [0] is for the first patient
     ########################################################################
-    preds = pd.DataFrame({'Age (years)': output_time_list, 'Probability of Obesity': output_prob_list}).to_html(
-        index=False, justify='left')  # , 'Obesity': output_class_list
+   
+    tbl_config = """
+    <table border="1" class="dataframe" style="width: 100%">
+    <colgroup>
+       <col span="1" style="width: 10px;">
+       <col span="1">
+    </colgroup>
+
+    """
+   
+   
+   
+   
+    preds = pd.DataFrame({'Age (yrs)': output_time_list, 'Probability of Obesity': output_prob_list}).to_html(
+        index=False, justify='left', escape=False).replace('<table border="1" class="dataframe">', tbl_config)  # , 'Obesity': output_class_list
+    print(preds)
     return {'preds': preds}
