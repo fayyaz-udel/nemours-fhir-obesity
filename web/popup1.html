@@ -207,39 +207,10 @@
         <!--        </p>-->
 
     </div>
+</div>
 
+<br>
 
-    <br>
-
-    <script type="text/javascript">
-        const queryString = window.location.search;
-        const urlParams = new URLSearchParams(queryString);
-        const patId = urlParams.get('patient');
-
-        async function main(patId) {
-            get_demographic(patId).then(function (pt) {
-                get_meds(patId).then(function (med) {
-                    get_conds(patId).then(function (cond) {
-                        get_obsrvs(patId).then(async function (obsrv) {
-                            data = {
-                                'patient': pt,
-                                'medications': med,
-                                'conditions': cond,
-                                'observations': obsrv
-                            }
-                            anthropometic = await communicate_server(data);
-                            get_server_response(anthropometic);
-                        })
-                    })
-                });
-            }).catch(function (error) {
-                console.error('An error occurred:', error);
-            });
-        }
-
-        main(patId);
-
-    </script>
 </body>
 </html>
 

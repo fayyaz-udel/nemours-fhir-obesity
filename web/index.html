@@ -232,8 +232,8 @@
 <div class="container">
 
     <div style="margin-top: 50px;">
-        <p id="name_dob0" style="text-align: left;"><b>Name:</b> Truman Doe</p>
-        <p id="name_dob1" style="text-align: left;"><b>DOB:</b> 12-22-2019</p>
+        <p id="name" style="text-align: left;"></p>
+        <p id="dob" style="text-align: left;"></p>
 
     </div>
     <!-- Bottom Divisions -->
@@ -241,22 +241,13 @@
 
         <div style="margin-left: 0; padding-left: 0; width: 500px">
             <h2 style="display: inline-block;">Truman’s predicted growth over time</h2>
-            <!--            <button type="button" id="popup1" class="button button5">i</button>-->
-            <a href="">
-                <img src="assets/icon/info.png" alt="Button Image" height="25px"
-                     style="margin-bottom: 10px; margin-left: 10px;">
-            </a>
-            <!--            <p id="preds"></p>-->
-            <!--	    <p> Truman has a 1 in 4 chance of developing an -->
-            <!--unhealthy weight in one year and an almost 1 in 2 chance of developing an unhealthy weight by the time he’s seven without making -->
-            <!--lifestyle changes</p>-->
-            <img src=assets/g_curve.jpeg width="450">
-            <br>
-            <button type="button" id="introbutton">Switch to weight curve</button>
-            <br>
 
-            <!--	    <p id="moc_data" style="margin-top: 0;"></p>-->
+            <p id="pop3" style="margin-left: 0; padding-left: 0;display: inline-block;"></p>
 
+            <p id="curve"></p>
+            <br>
+            <!--            <button type="button" id="introbutton">Switch to weight curve</button>-->
+            <br>
 
         </div>
         <div>
@@ -267,41 +258,12 @@
                 <span class="plus-minus">+</span>
             </button>
             <div class="content">
-                <!--                <h2 style="margin-bottom: 15px; margin-top: 30px;">What do these results mean?</h2>-->
-                <ul>
-                    <li>As part of every well child check, we like to see how a child is growing and talk about healthy
-                        behaviors.
-                    </li>
-                    <li>Experts say that for most children maintaining a BMI (weight for height) less than the 95th
-                        percentile is important to
-                        avoiding
-                        health risks like diabetes and heart disease.
-                    </li>
-                    <li><b>Truman</b> is currently at a <b>healthy weight</b>, but his <b>rate of weight gain is
-                        faster</b>
-                        than we
-                        would
-                        expect.
-                    </li>
-                    <li>He has a <b>1 in 2</b> chance of developing an unhealthy weight by the <b> age of 7</b>.
-                    </li>
+                <p id="result" style="margin-top: 0;"></p>
 
-                    <li>Healthy lifestyle changes can help <b>Truman</b> maintain a healthy
-                        weight and we
-                        have some great resources to share!
-                    </li>
-                </ul>
-                <!--            <button id="submitButton" type="button">Click here for more ways to have conversations about healthy-->
-                <!--                lifestyles-->
-                <!--            </button>-->
-
-                <!--        </div>-->
-
-                <!--        <div style="background: #0D3F6B; color: white; width: 1050px">-->
             </div>
             <button type="button" class="collapsible" style="display: inline-block;">
                 <span>Risk Factors</span>
-                <a href="">
+                <a href="./popup2.html" target="_blank">
                     <img src="assets/icon/infow.png" alt="Button Image" height="25px"
                          style="margin-bottom: 4px; margin-left: 10px">
                 </a>
@@ -315,9 +277,7 @@
                 <p> Based on electronic health record data, rate of weight gain is impacting Truman’s risk. Other
                     factors
                     are:</p>
-                <ul>
-                    <li> Abilify tablet 10 mg daily</li>
-                </ul>
+                <p id="risk"></p>
                 <br>
 
             </div>
@@ -335,30 +295,25 @@
                             (EN)]</a>
                         <a href="https://www.youtube.com/playlist?list=PLIkgAHHJ_KGh5lSIjzO1UJdZBEfbMZC2V">[Add to
                             AVS]</a>
-                        <a href="https://www.youtube.com/playlist?list=PLIkgAHHJ_KGh5lSIjzO1UJdZBEfbMZC2V">[Open]</a>
+                        <a href="https://www.youtube.com/playlist?list=PLIkgAHHJ_KGh5lSIjzO1UJdZBEfbMZC2V" target="_blank">[Open]</a>
 
                     </li>
                     <li>Website: Nutrition Tips
-                        <a href="https://healthychildren.org/English/healthy-living/nutrition/Pages/default.aspx">[EN -
-                            add
-                            to AVS]</a>
+                        <a href="https://healthychildren.org/English/healthy-living/nutrition/Pages/default.aspx">[EN - add to AVS]</a>
 
-                        <a href="https://healthychildren.org/spanish/healthy-living/nutrition/paginas/default.aspx">[SP
-                            -
-                            add to AVS]</a>
-                        <a href"">[Open]</a>
+                        <a href="https://healthychildren.org/spanish/healthy-living/nutrition/paginas/default.aspx">[SP - add to AVS]</a>
+                        <a href="https://healthychildren.org/English/healthy-living/nutrition/Pages/default.aspx" target="_blank">[Open]</a>
                     </li>
                     <li>Handout: Healthy Kitchen
                         <a href="assets/Healthy%20Kitchen%20FINAL%2010.12.21.pdf">[EN - add to AVS]</a>
-                        <a href="assets/spanish/Healthy%20Kitchen%20FINAL%20SPANISH%2010.12.21.pdf">[SP - add to
-                            AVS]</a>
-                        <a href="">[Open]</a>
+                        <a href="assets/spanish/Healthy%20Kitchen%20FINAL%20SPANISH%2010.12.21.pdf">[SP - add to AVS]</a>
+                        <a href="assets/Healthy%20Kitchen%20FINAL%2010.12.21.pdf" target="_blank">[Open]</a>
 
                     </li>
                     <li>Handout: MyPlate
                         <a href="assets/J9046_Healthy_Plate_Tearpads_PRINT-FIN.pdf">[EN - add to AVS]</a>
                         <a href="assets/spanish/J9043_Spanish_Healthy_Plate_Tearpad-FIN-1.pdf">[SP - add to AVS]</a>
-                        <a href="">[Open]</a>
+                        <a href="assets/J9046_Healthy_Plate_Tearpads_PRINT-FIN.pdf" target="_blank">[Open]</a>
 
                     </li>
                 </ul>
@@ -369,18 +324,18 @@
 
                         <a href="https://kidshealth.org/en/parents/general/sleep">[EN - add to AVS]</a>
                         <a href="https://kidshealth.org/es/parents/general/sleep">[SP - add to AVS]</a>
-                        <a href="">[Open]</a>
+                        <a href="https://kidshealth.org/en/parents/general/sleep" target="_blank">[Open]</a>
 
                     </li>
                     <li>Website: Your Child’s Feelings
                         <a href="https://kidshealth.org/en/kids/feeling/">[EN - add to AVS]</a>
                         <a href="https://kidshealth.org/es/kids/feeling/">[SP - add to AVS]</a>
-                        <a href="">[Open]</a>
+                        <a href="https://kidshealth.org/en/kids/feeling/" target="_blank">[Open]</a>
                     </li>
                     <li>Handout: Mealtime Problems
-                        <a href=assets/Mealtime%20Problems%20English%204.1.22.pdf">[EN - add to AVS]</a>
-                        <a href=assets/spanish/Mealtime%20Problems%20Spanish%204.1.22.pdf">[SP - add to AVS]</a>
-                        <a href="">{Print]</a>
+                        <a href="assets/Mealtime%20Problems%20English%204.1.22.pdf">[EN - add to AVS]</a>
+                        <a href="assets/spanish/Mealtime%20Problems%20Spanish%204.1.22.pdf">[SP - add to AVS]</a>
+                        <a href="assets/Mealtime%20Problems%20English%204.1.22.pdf" target="_blank">[Print]</a>
                     </li>
 
                 </ul>
@@ -389,28 +344,22 @@
                 <h4 style="font-weight: bold">Being Active</h4>
                 <ul>
                     <li>Video playlist: Fitness Videos for your Child
-                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[YouTube
-                            (EN)]</a>
-                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[Add to
-                            AVS]</a>
-                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[Open]</a>
+                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[YouTube (EN)]</a>
+                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[Add to AVS]</a>
+                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT" target="_blank">[Open]</a>
 
 
                     </li>
                     <li>Website: Helping Your Child Stay Fit
-                        <a href="https://kidshealth.org/en/kids/center/fitness-nutrition-center.html#catfit">[EN - add
-                            to
-                            AVS]</a>
-                        <a href="https://kidshealth.org/es/kids/stay-healthy/#catfit">[SP - add to AVS]</a>
-                        <a href="">[Open]</a>
+                        <a href="https://kidshealth.org/en/kids/center/fitness-nutrition-center.html#catfit">[EN- add to AVS]</a>
+                        <a href="https://kidshealth.org/es/kids/stay-healthy/#catfit">[SP- add to AVS]</a>
+                        <a href="https://kidshealth.org/en/kids/center/fitness-nutrition-center.html#catfit" target="_blank">[Open]</a>
 
                     </li>
                     <li>Handout: Strength and Movement Activities to Try at Home
-                        <a href="assets/J8901_Enterprise_App_Dashboard_Exercise_Handout_Rebrand_V1.pdf">[EN - add to
-                            AVS]</a>
-                        <a href="assets/spanish/J8946_Enterprise_Spanish_App_Dashboard_Exercise_Handout-FINAL_5.24.22.pdf">[SP
-                            - add to AVS]</a>
-                        <a href="">[Open]</a>
+                        <a href="assets/J8901_Enterprise_App_Dashboard_Exercise_Handout_Rebrand_V1.pdf">[EN- add to AVS]</a>
+                        <a href="assets/spanish/J8946_Enterprise_Spanish_App_Dashboard_Exercise_Handout-FINAL_5.24.22.pdf">[SP- add to AVS]</a>
+                        <a href="assets/J8901_Enterprise_App_Dashboard_Exercise_Handout_Rebrand_V1.pdf" target="_blank">[Open]</a>
                     </li>
                 </ul>
 
@@ -420,11 +369,9 @@
 
                 <ul>
                     <li>Website: Women Infants and Childrens program
-                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[EN – add to
-                            AVS]</a>
-                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[SP – add to
-                            AVS]</a>
-                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[Open]</a>
+                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[EN – add to AVS]</a>
+                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[SP – add to AVS]</a>
+                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT" target="_blank">[Open]</a>
 
                     </li>
                     <li>Website: 211
@@ -432,7 +379,7 @@
                             AVS]</a>
                         <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[SP – add to
                             AVS]</a>
-                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT">[Open]</a>
+                        <a href="https://www.youtube.com/playlist?list=PLuYahBGAEaoe-_nkeg1t7QwPTDi5wv9tT" target="_blank">[Open]</a>
 
                     </li>
                 </ul>
@@ -473,24 +420,29 @@
     const patId = urlParams.get('patient');
 
     async function main(patId) {
-        get_demographic(patId).then(function (pt) {
-            get_meds(patId).then(function (med) {
-                get_conds(patId).then(function (cond) {
-                    get_obsrvs(patId).then(async function (obsrv) {
-                        data = {
-                            'patient': pt,
-                            'medications': med,
-                            'conditions': cond,
-                            'observations': obsrv
-                        }
-                        anthropometic = await communicate_server(data);
-                        get_server_response(anthropometic);
-                    })
-                })
-            });
-        }).catch(function (error) {
-            console.error('An error occurred:', error);
-        });
+        // get_demographic(patId).then(function (pt) {
+        //     get_meds(patId).then(function (med) {
+        //         get_conds(patId).then(function (cond) {
+        //             get_obsrvs(patId).then(async function (obsrv) {
+        //                 data = {
+        //                     'patient': pt,
+        //                     'medications': med,
+        //                     'conditions': cond,
+        //                     'observations': obsrv
+        //                 }
+        //                 anthropometic = await communicate_server(data);
+        //                 get_server_response(anthropometic);
+
+
+        anthropometic = await communicate_server({t: "test"});
+        get_server_response(anthropometic);
+
+        //             })
+        //         })
+        //     });
+        // }).catch(function (error) {
+        //     console.error('An error occurred:', error);
+        // });
     }
 
     main(patId);

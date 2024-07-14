@@ -2,6 +2,8 @@ import warnings
 
 import numpy as np
 
+from inference.config import config
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import pickle
 import math
@@ -20,8 +22,13 @@ importlib.reload(model)
 
 person_id = 820427166
 
-data_folder = "/var/www/nemours-fhir-obesity/inference/data/"
-model_folder = "/var/www/nemours-fhir-obesity/inference/saved_models/"
+if config["DEBUG"]:
+    data_folder = "./data/"
+    model_folder = "./saved_models/"
+else:
+    data_folder = "/var/www/nemours-fhir-obesity/inference/data/"
+    model_folder = "/var/www/nemours-fhir-obesity/inference/saved_models/"
+
 
 
 def calculate_wfl_stage(height, weight, map_dict, sex):
