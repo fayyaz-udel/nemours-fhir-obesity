@@ -243,8 +243,7 @@
             <h2 style="display: inline-block;">Growth Over Time</h2>
 
             <p id="pop3" style="margin-left: 0; padding-left: 0;display: inline-block;"></p>
-
-            <img id="curve" src=assets/chart.png width="450">
+            <img id="plot" alt="Growth" width="450">
             <br>
             <!--            <button type="button" id="introbutton">Switch to weight curve</button>-->
             <br>
@@ -273,7 +272,7 @@
                     <!--                    <li>He has a <b>1 in 2</b> chance of developing an unhealthy weight by the <b> age of 7</b>.-->
                     <!--                    </li>-->
 
-                    <li>Healthy lifestyle changes can help <b>Truman</b> maintain a healthy weight and we have some
+                    <li>Healthy lifestyle changes can help your child  maintain a healthy weight and we have some
                         great resources to share!
                     </li>
                 </ul>
@@ -483,8 +482,7 @@
             console.error('An error occurred:', error);
         });
     }
-
-    main(patId);
+window.onload = main(patId);
 
 </script>
 </body>

@@ -2,7 +2,7 @@ import warnings
 
 import numpy as np
 
-from inference.config import config
+from config import config
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import pickle
@@ -517,14 +517,14 @@ def extract_anthropometric_data(data, smax):
 
     bmi = observation_df[observation_df['code'] == '39156-5'][['age', 'value']]
     bmi['show'] = False
-    for i in range(0, smax * 12, 6):
-        if i not in bmi['age'].values:
-            bmi = pd.concat([bmi, pd.DataFrame([{'age': i, 'value': None, 'show': True}])], ignore_index=True)
-        else:
-            bmi.loc[bmi['age'] == i, 'show'] = True
+    #for i in range(0, smax * 12, 6):
+    #    if i not in bmi['age'].values:
+    #        bmi = pd.concat([bmi, pd.DataFrame([{'age': i, 'value': None, 'show': True}])], ignore_index=True)
+    #    else:
+    #        bmi.loc[bmi['age'] == i, 'show'] = True
     bmi = bmi.sort_values(by=['age'])
-    bmi.interpolate(method='linear', limit_area='inside', inplace=True)
-    bmi = bmi[bmi['show'] == True]
+    # bmi.interpolate(method='linear', limit_area='inside', inplace=True)
+    #bmi = bmi[bmi['show'] == True]
     bmi['value'].replace({None: 'No Data'}, inplace=True)
     bmi = bmi.replace({np.nan: None})
 

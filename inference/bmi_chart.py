@@ -1,10 +1,12 @@
 import matplotlib.pyplot as plt
 import pandas as pd
-
+from flask import Flask, jsonify
+import io
+import base64
 
 def plot_bmi_percentiles(age_list,bmi_list, sex):
-    age_range = [min(age_list)-1, max(age_list)+1]
-    bmi_data = pd.read_csv("./data/bmip.csv")
+    age_range = [2,10]#[min(age_list)-1, max(age_list)+1]
+    bmi_data = pd.read_csv("/var/www/nemours-fhir-obesity/inference/data/bmip.csv")
     # Filter data based on the provided age range and sex
     bmi_data['Age'] = bmi_data['Agemos'] / 12
     filtered_data = bmi_data[(bmi_data['Age'] >= age_range[0]) &
@@ -36,8 +38,12 @@ def plot_bmi_percentiles(age_list,bmi_list, sex):
     plt.ylim(12, 26)
     plt.xlim(age_range[0], age_range[1])
     plt.grid(True)
-    plt.savefig("../web/assets/chart.png", bbox_inches='tight')
-
+    #plt.savefig("/var/www/nemours-fhir-obesity/web/assets/chart.png", bbox_inches='tight')
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', bbox_inches='tight')
+    buf.seek(0)
+    image_base64 = base64.b64encode(buf.getvalue()).decode('utf8')
+    return image_base64
 
 if __name__ == '__main__':
     al = [3, 4, 5, 6, 7, 8, 9]
