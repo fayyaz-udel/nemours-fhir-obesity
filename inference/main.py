@@ -84,6 +84,6 @@ def mock():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 4000))
     if DEBUG:
-        app.run(debug=False, host='0.0.0.0', port=port)
+        app.run(debug=True, host='0.0.0.0', port=port)
     else:
-        app.run(debug=False, host='0.0.0.0', port=port, ssl_context=('./key/cert.pem', './key/key.pem'))
+        app.run(debug=True, host='0.0.0.0', port=port, ssl_context=('./key/cert.pem', './key/key.pem'))

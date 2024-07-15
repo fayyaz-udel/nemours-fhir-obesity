@@ -25,7 +25,7 @@ function get_demographic(pat_id) {
     return FHIR.oauth2.ready().then(function (client) {
         return client.request("/Patient?_id=" + pat_id).then(function (pt) {
             pt = pt.entry[0].resource;
-            document.getElementById("name_dob").innerHTML = "<b> Name: </b>" + pt.name[0].given + " " + pt.name[0].family + "<br><b>DOB: </b>" + pt.birthDate.substring(5, 10) + '-' + pt.birthDate.substring(0, 4);
+            // document.getElementById("name_dob").innerHTML = "<b> Name: </b>" + pt.name[0].given + " " + pt.name[0].family + "<br><b>DOB: </b>" + pt.birthDate.substring(5, 10) + '-' + pt.birthDate.substring(0, 4);
             return pt;
         });
 
