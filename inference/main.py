@@ -4,6 +4,7 @@ import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
 
+from inference.bmi_chart import plot_bmi_percentiles
 from util import *
 
 DEBUG = config["DEBUG"]
@@ -35,32 +36,29 @@ def index():
     else:
         inference_data = inference(represantation_data, net, obser_pred_wins["obser_max"])
 
-    anthropometric_data = extract_anthropometric_data(prrocessed_data, obser_pred_wins["obser_max"])
+    anthropometric_data = extract_anthropometric_data(prrocessed_data, obser_pred_wins["obser_max"]) # BMI during the ages
     ehr_history = extract_ehr_history(prrocessed_data, obser_pred_wins["obser_max"] * 12)
 
-    response_dict = {**anthropometric_data, **inference_data, **ehr_history}
+
+    plot_bmi_percentiles(anthropometric_data['bmi_y'], anthropometric_data['bmi_x'], sex=1)
+
+    response_dict = {}
+    pop3 = '''<a href="./popup3.html?name='''+data['patient'].name[0].given+'''" target="_blank">
+            <img src="assets/icon/info.png" alt="Button Image" height="25px"
+            style="margin-bottom: 10px; margin-left: 10px;">
+    </a>'''
+    response_dict['pop3'] = pop3
+    response_dict['name'] = data['patient'].name[0].given + " " + data['patient'].name[0].family
+    response_dict['dob'] = data['patient'].birthDate.date
+    response_dict['result'] = inference_data['preds']
+    response_dict['risk'] = ehr_history['moc_data']
+
     #########################################################################
     return jsonify(response_dict)
 
 
 def mock():
-    result = '''                <ul>
-                    <li>As part of every well child check, we like to see how a child is growing and talk about healthy
-                        behaviors.
-                    </li>
-                    <li>Experts say that for most children maintaining a BMI (weight for height) less than the 95th
-                        percentile is important to
-                        avoiding
-                        health risks like diabetes and heart disease.
-                    </li>
-                    <li><b>Truman</b> is currently at a <b>healthy weight</b>, but his <b>rate of weight gain is
-                        faster</b> than we would expect.
-                    </li>
-                    <li>He has a <b>1 in 2</b> chance of developing an unhealthy weight by the <b> age of 7</b>.
-                    </li>
-
-                    <li>Healthy lifestyle changes can help <b>Truman</b> maintain a healthy weight and we have some great resources to share!</li>
-                </ul>'''
+    result = '''    table goes here'''
 
     name = "<b>Name:</b> Truman Doe"
     dob = "<b>DOB:</b> 12-22-2019"
@@ -68,18 +66,17 @@ def mock():
                     <li> Abilify tablet</li>
                 </ul>'''
 
-    pop3 = '''
-    <a href="./popup3.html?name=John" target="_blank">
+    pop3 = '''<a href="./popup3.html?name=John" target="_blank">
             <img src="assets/icon/info.png" alt="Button Image" height="25px"
             style="margin-bottom: 10px; margin-left: 10px;">
-    </a>
-    
-    '''
-    output_dict = {'result': result,
-                   'name': name,
-                   'dob': dob,
-                   'risk': risk,
-                   'pop3': pop3}
+    </a>'''
+    output_dict = {
+        'name': name,
+        'dob': dob,
+        'pop3': pop3,
+        'risk': risk,
+        'result': result,
+    }
 
     return output_dict
 
