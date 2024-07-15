@@ -2,8 +2,8 @@ function communicate_server(data) {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
 
-        // xhr.open("POST", "https://wlmresfhr500.nemours.org/nemours-fhir-obesity/inference/");
-        xhr.open("POST", "http://localhost:4000");
+        xhr.open("POST", "https://wlmresfhr500.nemours.org/nemours-fhir-obesity/inference/");
+        //xhr.open("POST", "http://localhost:4000");
 
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.onload = function () {
