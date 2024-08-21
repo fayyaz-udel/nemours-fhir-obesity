@@ -1,9 +1,10 @@
+const debug = true;
+const inference_server = "http://localhost:4000"; // "https://wlmresfhr500.nemours.org/nemours-fhir-obesity/inference/";
+const fhir_server = "http://localhost:3000"; // "https://wlmresfhr500.nemours.org/nemours-fhir-obesity/fhir/";
 function communicate_server(data) {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-
-        xhr.open("POST", "https://wlmresfhr500.nemours.org/nemours-fhir-obesity/inference/");
-        //xhr.open("POST", "http://localhost:4000");
+        xhr.open("POST", inference_server);
 
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.onload = function () {
@@ -22,10 +23,19 @@ function communicate_server(data) {
 
 
 function get_demographic(pat_id) {
+    if (debug) {
+        const client = FHIR.client(fhir_server);
+        return client.request("/Patient?_id=" + pat_id).then(function (pt) {
+            pt = pt.entry[0].resource;
+            return pt;
+        });
+
+    } else {
+
+    }
     return FHIR.oauth2.ready().then(function (client) {
         return client.request("/Patient?_id=" + pat_id).then(function (pt) {
             pt = pt.entry[0].resource;
-           // document.getElementById("name_dob").innerHTML = "<b> Name: </b>" + pt.name[0].given + " " + pt.name[0].family + "<br><b>DOB: </b>" + pt.birthDate.substring(5, 10) + '-' + pt.birthDate.substring(0, 4);
             return pt;
         });
 
@@ -37,7 +47,8 @@ function get_demographic(pat_id) {
 
 
 function get_meds(pat_id) {
-    return FHIR.oauth2.ready().then(function (client) {
+    if (debug) {
+        const client = FHIR.client(fhir_server);
         return client.request("/MedicationRequest?patient=" + pat_id, {
             resolveReferences: ["medicationReference"], graph: true,
         })
@@ -69,14 +80,52 @@ function get_meds(pat_id) {
 
                 return meds;
             });
-    }).catch(function (error) {
-        document.getElementById("meds").innerText = error.stack;
-        throw error;
-    });
+
+    } else {
+        return FHIR.oauth2.ready().then(function (client) {
+
+            return client.request("/MedicationRequest?patient=" + pat_id, {
+                resolveReferences: ["medicationReference"], graph: true,
+            })
+                .then(function (data) {
+                    return data.entry;
+                })
+                .then(function (meds) {
+                    if (!meds) {
+                        return null;
+                    }
+                    if (!meds.length) {
+                        return null;
+                    }
+                    let table = document.createElement('table')
+                    for (var j = 0; j < meds.length; j++) {
+                        let row = table.insertRow();
+
+                        let date = row.insertCell();
+                        date.textContent = meds[j]["resource"]["authoredOn"];
+
+                        let code = row.insertCell();
+                        code.textContent = meds[j]["resource"]["medicationCodeableConcept"]["coding"][0]["code"];
+
+                        let name = row.insertCell();
+                        name.textContent = meds[j]["resource"]["medicationCodeableConcept"]["coding"][0]["display"];
+
+                    }
+                    document.getElementById("meds").insertAdjacentElement("afterend", table);
+
+                    return meds;
+                });
+        }).catch(function (error) {
+            document.getElementById("meds").innerText = error.stack;
+            throw error;
+        });
+    }
+
 }
 
 function get_conds(pat_id) {
-    return FHIR.oauth2.ready().then(function (client) {
+    if (debug) {
+        const client = FHIR.client(fhir_server);
 
         return client.request("/Condition?patient=" + pat_id, {
             resolveReferences: ["conditionReference"], graph: true,
@@ -109,16 +158,52 @@ function get_conds(pat_id) {
 
                 return conds;
             });
-    }).catch(function (error) {
-        document.getElementById("conds").innerText = error.stack;
-        throw error;
-    });
+    } else {
+        return FHIR.oauth2.ready().then(function (client) {
+            return client.request("/Condition?patient=" + pat_id, {
+                resolveReferences: ["conditionReference"], graph: true,
+            })
+                .then(function (data) {
+                    return data.entry;
+                })
+                .then(function (conds) {
+                    if (!conds) {
+                        return null;
+                    }
+                    if (!conds.length) {
+                        return null;
+                    }
+                    let table = document.createElement('table');
+                    for (var j = 0; j < conds.length; j++) {
+                        let row = table.insertRow();
+
+                        let date = row.insertCell();
+                        date.textContent = conds[j]["resource"]["onsetDateTime"];
+
+                        let code = row.insertCell();
+                        code.textContent = conds[j]["resource"]["code"]["coding"][0]["code"];
+
+                        let name = row.insertCell();
+                        name.textContent = conds[j]["resource"]["code"]["coding"][0]["display"];
+
+                    }
+                    document.getElementById("conds").insertAdjacentElement("afterend", table);
+
+                    return conds;
+                });
+        }).catch(function (error) {
+            document.getElementById("conds").innerText = error.stack;
+            throw error;
+        });
+    }
+
+
 }
 
 
 function get_obsrvs(pat_id) {
-    return FHIR.oauth2.ready().then(function (client) {
-
+    if (debug) {
+        const client = FHIR.client(fhir_server);
         return client.request("/Observation?patient=" + pat_id, {
             resolveReferences: ["medicationReference"], graph: true,
         })
@@ -159,18 +244,62 @@ function get_obsrvs(pat_id) {
 
                 return obrvs;
             });
-    }).catch(function (error) {
-        document.getElementById("obsrvs").innerText = error.stack;
-        throw error;
-    });
+
+    } else {
+        return FHIR.oauth2.ready().then(function (client) {
+
+            return client.request("/Observation?patient=" + pat_id, {
+                resolveReferences: ["medicationReference"], graph: true,
+            })
+                .then(function (data) {
+                    return data.entry;
+                })
+                .then(function (obrvs) {
+                    if (!obrvs) {
+                        return null;
+                    }
+                    if (!obrvs.length) {
+                        return null;
+                    }
+                    let table = document.createElement('table');
+                    for (var j = 0; j < obrvs.length; j++) {
+                        if (!obrvs[j]["resource"]["code"]["coding"][0]["display"].includes("Body")) {
+                            continue;
+                        }
+                        let row = table.insertRow();
+
+                        let date = row.insertCell();
+                        date.textContent = obrvs[j]["resource"]["effectiveDateTime"];
+
+                        let row_no = row.insertCell();
+                        row_no.textContent = j;
+
+                        let code = row.insertCell();
+                        code.textContent = obrvs[j]["resource"]["code"]["coding"][0]["code"];
+
+                        let name = row.insertCell();
+                        name.textContent = obrvs[j]["resource"]["code"]["coding"][0]["display"];
+
+                        let value = row.insertCell();
+                        value.textContent = obrvs[j]["resource"]["valueQuantity"]["value"].toFixed(2);
+
+                    }
+                    document.getElementById("obsrvs").insertAdjacentElement("afterend", table);
+
+                    return obrvs;
+                });
+        }).catch(function (error) {
+            document.getElementById("obsrvs").innerText = error.stack;
+            throw error;
+        });
+    }
+
 }
 
 
 function get_server_response(data) {
     data = JSON.parse(data);
 
-    // document.getElementById("moc_data").innerHTML = data['moc_data'];
-    // document.getElementById("preds").innerHTML = data['preds'];
     document.getElementById("result").innerHTML = data['result'];
     document.getElementById("risk").innerHTML = data['risk'];
     document.getElementById("name").innerHTML = data['name'];
