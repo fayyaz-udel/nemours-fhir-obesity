@@ -1,6 +1,5 @@
 # import joblib
 import os
-os.system('pip3 install matplotlib')
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
 
@@ -21,8 +20,8 @@ models = load_models()
 @app.route("/", methods=["POST", "GET"])
 @cross_origin()
 def index():
-    if DEBUG:
-        return mock()
+    # if DEBUG:
+    #     return mock()
 
     data = request.json
     prrocessed_data = process_input(data, map_dict)

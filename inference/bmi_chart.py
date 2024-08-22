@@ -4,9 +4,16 @@ from flask import Flask, jsonify
 import io
 import base64
 
+from inference.config import config
+
+
 def plot_bmi_percentiles(age_list,bmi_list, sex):
     age_range = [2,10]#[min(age_list)-1, max(age_list)+1]
-    bmi_data = pd.read_csv("/var/www/nemours-fhir-obesity/inference/data/bmip.csv")
+    if config["DEBUG"]:
+        bmi_data = pd.read_csv("./data/bmip.csv")
+    else:
+        bmi_data = pd.read_csv("/var/www/nemours-fhir-obesity/inference/data/bmip.csv")
+
     # Filter data based on the provided age range and sex
     bmi_data['Age'] = bmi_data['Agemos'] / 12
     filtered_data = bmi_data[(bmi_data['Age'] >= age_range[0]) &

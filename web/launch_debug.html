@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Launch My APP</title>
+    <!-- Use the SMART on FHIR JavaScript library to handle authorization -->
+    <script src="https://cdn.jsdelivr.net/npm/fhirclient/build/fhir-client.js"></script>
+</head>
+<body>
+<script>
+    //const queryString = window.location.search;
+    //const urlParams = new URLSearchParams(queryString);
+    //const pid = urlParams.get('launch');
+
+    FHIR.oauth2.authorize({
+        scope: "launch openid patient/*.read",
+        // launch: "eyJhIjoiMSJ9Cg==",
+        // redirectUri: "https://wlmresfhr500.nemours.org/nemours-fhir-obesity/web/",
+        // patientId: "9",
+        // iss: "https://wlmresfhr500.nemours.org/omoponfhir/fhir/",
+        clientId: "6688359a-a557-43fa-9986-06dd01b1455f",
+    });
+</script>
+</body>
+</html>

@@ -164,6 +164,7 @@ function get_conds(pat_id) {
                 resolveReferences: ["conditionReference"], graph: true,
             })
                 .then(function (data) {
+                    console.log(data);
                     return data.entry;
                 })
                 .then(function (conds) {
