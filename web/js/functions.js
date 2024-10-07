@@ -22,20 +22,10 @@ function communicate_server(data) {
 }
 
 
-function get_demographic(pat_id) {
-    if (debug) {
-        const client = FHIR.client(fhir_server);
-        return client.request("/Patient?_id=" + pat_id).then(function (pt) {
-            pt = pt.entry[0].resource;
-            return pt;
-        });
-
-    } else {
-
-    }
+function get_demographic() {
     return FHIR.oauth2.ready().then(function (client) {
-        return client.request("/Patient?_id=" + pat_id).then(function (pt) {
-            pt = pt.entry[0].resource;
+        return client.patient.read().then(function (pt) {
+            console.log(pt);
             return pt;
         });
 
@@ -46,41 +36,44 @@ function get_demographic(pat_id) {
 }
 
 
-function get_meds(pat_id) {
+function get_meds() {
     if (debug) {
-        const client = FHIR.client(fhir_server);
-        return client.request("/MedicationRequest?patient=" + pat_id, {
-            resolveReferences: ["medicationReference"], graph: true,
-        })
-            .then(function (data) {
-                return data.entry;
-            })
-            .then(function (meds) {
-                if (!meds) {
-                    return null;
-                }
-                if (!meds.length) {
-                    return null;
-                }
-                let table = document.createElement('table')
-                for (var j = 0; j < meds.length; j++) {
-                    let row = table.insertRow();
+        return FHIR.oauth2.ready().then(function (client) {
+            return client.patient.read().then(function (pt) {
+                return client.request("/MedicationRequest?patient=" + client.patient.id, {
+                    resolveReferences: ["medicationReference"],
+                    graph: true,
+                })
+                    .then(function (data) {
+                        return data.entry;
+                    })
+                    .then(function (meds) {
+                        if (!meds) {
+                            return null;
+                        }
+                        if (!meds.length) {
+                            return null;
+                        }
+                        let table = document.createElement('table')
+                        for (var j = 0; j < meds.length; j++) {
+                            let row = table.insertRow();
 
-                    let date = row.insertCell();
-                    date.textContent = meds[j]["resource"]["authoredOn"];
+                            let date = row.insertCell();
+                            date.textContent = meds[j]["resource"]["authoredOn"];
 
-                    let code = row.insertCell();
-                    code.textContent = meds[j]["resource"]["medicationCodeableConcept"]["coding"][0]["code"];
+                            let code = row.insertCell();
+                            code.textContent = meds[j]["resource"]["medicationCodeableConcept"]["coding"][0]["code"];
 
-                    let name = row.insertCell();
-                    name.textContent = meds[j]["resource"]["medicationCodeableConcept"]["coding"][0]["display"];
+                            let name = row.insertCell();
+                            name.textContent = meds[j]["resource"]["medicationCodeableConcept"]["coding"][0]["display"];
 
-                }
-                document.getElementById("meds").insertAdjacentElement("afterend", table);
+                        }
+                        document.getElementById("meds").insertAdjacentElement("afterend", table);
 
-                return meds;
+                        return meds;
+                    });
             });
-
+        });
     } else {
         return FHIR.oauth2.ready().then(function (client) {
 
@@ -123,41 +116,47 @@ function get_meds(pat_id) {
 
 }
 
-function get_conds(pat_id) {
+function get_conds() {
     if (debug) {
-        const client = FHIR.client(fhir_server);
+        return FHIR.oauth2.ready().then(function (client) {
+            return client.patient.read().then(function (pt) {
+                const patientId = pt.id;  // Assuming 'id' is the correct property
 
-        return client.request("/Condition?patient=" + pat_id, {
-            resolveReferences: ["conditionReference"], graph: true,
-        })
-            .then(function (data) {
-                return data.entry;
-            })
-            .then(function (conds) {
-                if (!conds) {
-                    return null;
-                }
-                if (!conds.length) {
-                    return null;
-                }
-                let table = document.createElement('table');
-                for (var j = 0; j < conds.length; j++) {
-                    let row = table.insertRow();
+                return client.request("/Condition?patient=" + patientId, {
+                    resolveReferences: ["conditionReference"],
+                    graph: true,
+                })
+                    .then(function (data) {
+                        return data.entry;
+                    })
+                    .then(function (conds) {
+                        if (!conds) {
+                            return null;
+                        }
+                        if (!conds.length) {
+                            return null;
+                        }
+                        let table = document.createElement('table');
+                        for (var j = 0; j < conds.length; j++) {
+                            let row = table.insertRow();
 
-                    let date = row.insertCell();
-                    date.textContent = conds[j]["resource"]["onsetDateTime"];
+                            let date = row.insertCell();
+                            date.textContent = conds[j]["resource"]["onsetDateTime"];
 
-                    let code = row.insertCell();
-                    code.textContent = conds[j]["resource"]["code"]["coding"][0]["code"];
+                            let code = row.insertCell();
+                            code.textContent = conds[j]["resource"]["code"]["coding"][0]["code"];
 
-                    let name = row.insertCell();
-                    name.textContent = conds[j]["resource"]["code"]["coding"][0]["display"];
+                            let name = row.insertCell();
+                            name.textContent = conds[j]["resource"]["code"]["coding"][0]["display"];
 
-                }
-                document.getElementById("conds").insertAdjacentElement("afterend", table);
+                        }
+                        document.getElementById("conds").insertAdjacentElement("afterend", table);
 
-                return conds;
+                        return conds;
+                    });
             });
+        });
+
     } else {
         return FHIR.oauth2.ready().then(function (client) {
             return client.request("/Condition?patient=" + pat_id, {
@@ -202,49 +201,55 @@ function get_conds(pat_id) {
 }
 
 
-function get_obsrvs(pat_id) {
+function get_obsrvs() {
     if (debug) {
-        const client = FHIR.client(fhir_server);
-        return client.request("/Observation?patient=" + pat_id, {
-            resolveReferences: ["medicationReference"], graph: true,
-        })
-            .then(function (data) {
-                return data.entry;
-            })
-            .then(function (obrvs) {
-                if (!obrvs) {
-                    return null;
-                }
-                if (!obrvs.length) {
-                    return null;
-                }
-                let table = document.createElement('table');
-                for (var j = 0; j < obrvs.length; j++) {
-                    if (!obrvs[j]["resource"]["code"]["coding"][0]["display"].includes("Body")) {
-                        continue;
-                    }
-                    let row = table.insertRow();
+        return FHIR.oauth2.ready().then(function (client) {
+            return client.patient.read().then(function (pt) {
+                const patientId = pt.id;
 
-                    let date = row.insertCell();
-                    date.textContent = obrvs[j]["resource"]["effectiveDateTime"];
+                return client.request(`/Observation?patient=${patientId}`, {
+                    resolveReferences: ["medicationReference"],
+                    graph: true,
+                })
+                    .then(function (data) {
+                        return data.entry;
+                    })
+                    .then(function (obrvs) {
+                        if (!obrvs) {
+                            return null;
+                        }
+                        if (!obrvs.length) {
+                            return null;
+                        }
+                        let table = document.createElement('table');
+                        for (var j = 0; j < obrvs.length; j++) {
+                            if (!obrvs[j]["resource"]["code"]["coding"][0]["display"].includes("Body")) {
+                                continue;
+                            }
+                            let row = table.insertRow();
 
-                    let row_no = row.insertCell();
-                    row_no.textContent = j;
+                            let date = row.insertCell();
+                            date.textContent = obrvs[j]["resource"]["effectiveDateTime"];
 
-                    let code = row.insertCell();
-                    code.textContent = obrvs[j]["resource"]["code"]["coding"][0]["code"];
+                            let row_no = row.insertCell();
+                            row_no.textContent = j;
 
-                    let name = row.insertCell();
-                    name.textContent = obrvs[j]["resource"]["code"]["coding"][0]["display"];
+                            let code = row.insertCell();
+                            code.textContent = obrvs[j]["resource"]["code"]["coding"][0]["code"];
 
-                    let value = row.insertCell();
-                    value.textContent = obrvs[j]["resource"]["valueQuantity"]["value"].toFixed(2);
+                            let name = row.insertCell();
+                            name.textContent = obrvs[j]["resource"]["code"]["coding"][0]["display"];
 
-                }
-                document.getElementById("obsrvs").insertAdjacentElement("afterend", table);
+                            let value = row.insertCell();
+                            value.textContent = obrvs[j]["resource"]["valueQuantity"]["value"].toFixed(2);
 
-                return obrvs;
+                        }
+                        document.getElementById("obsrvs").insertAdjacentElement("afterend", table);
+
+                        return obrvs;
+                    });
             });
+        });
 
     } else {
         return FHIR.oauth2.ready().then(function (client) {

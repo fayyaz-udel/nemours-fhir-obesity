@@ -1,25 +1,22 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8"/>
-    <title>Launch My APP</title>
-    <!-- Use the SMART on FHIR JavaScript library to handle authorization -->
-    <script src="https://cdn.jsdelivr.net/npm/fhirclient/build/fhir-client.js"></script>
-</head>
-<body>
-<script>
-    //const queryString = window.location.search;
-    //const urlParams = new URLSearchParams(queryString);
-    //const pid = urlParams.get('launch');
+    <head>
+        <meta charset="UTF-8" />
+        <title>Launch My APP</title>
+        <script src="https://cdn.jsdelivr.net/npm/fhirclient/build/fhir-client.js"></script>
+    </head>
+    <body>
+        <script>
+            FHIR.oauth2.authorize({
+              clientId: "my_web_app",
 
-    FHIR.oauth2.authorize({
-        scope: "launch openid patient/*.read",
-        launch: "eyJhIjoiMSJ9Cg==",
-        redirectUri: "https://wlmresfhr500.nemours.org/nemours-fhir-obesity/web/",
-        patientId: "9",
-        iss: "https://wlmresfhr500.nemours.org/omoponfhir/fhir/",
-        clientId: "6688359a-a557-43fa-9986-06dd01b1455f",
-    });
-</script>
-</body>
+              // The scopes that you request from the EHR. In this case we want to:
+              // launch            - Get the launch context
+              // openid & fhirUser - Get the current user
+              // patient/*.read    - Read patient data
+              scope: "launch openid fhirUser patient/*.read",
+              redirectUri: "index.html"
+            });
+        </script>
+    </body>
 </html>

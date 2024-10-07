@@ -147,9 +147,9 @@ def patient():
                     "name": [
                         {
                             "use": "official",
-                            "family": "Fayyaz",
+                            "family": "Doe",
                             "given": [
-                                "Hamed"
+                                "John"
                             ]
                         }
                     ],
@@ -161,7 +161,7 @@ def patient():
                         }
                     ],
                     "gender": "female",
-                    "birthDate": "2020-04-09",
+                    "birthDate": "2019-04-09",
                     "address": [
                         {
                             "extension": [

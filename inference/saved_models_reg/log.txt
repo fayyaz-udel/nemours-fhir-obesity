@@ -1,0 +1,188 @@
+"/home/hamed/PycharmProjects/FHIR Obesity/.venv/bin/python" /home/hamed/PycharmProjects/FHIR Obesity/main.py
+===============MODEL TRAINING===============
+[ MODEL LOADED ]
+=================== 0 FOLD=====================
+======= EPOCH 0.0 ========
+100%|██████████| 127/127 [29:28<00:00, 13.92s/it]
+Total Train Loss:  tensor(795.5112, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  488.9706813267299
+Validation results improved
+Updating Model
+======= EPOCH 1.0 ========
+100%|██████████| 127/127 [29:57<00:00, 14.15s/it]
+Total Train Loss:  tensor(435.6071, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  408.2135227748326
+Validation results improved
+Updating Model
+======= EPOCH 2.0 ========
+100%|██████████| 127/127 [30:07<00:00, 14.23s/it]
+Total Train Loss:  tensor(414.2001, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  401.68932669503346
+Validation results improved
+Updating Model
+======= EPOCH 3.0 ========
+100%|██████████| 127/127 [30:05<00:00, 14.22s/it]
+Total Train Loss:  tensor(409.3065, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  396.6875915527344
+Validation results improved
+Updating Model
+  0%|          | 0/127 [00:00<?, ?it/s]======= EPOCH 4.0 ========
+100%|██████████| 127/127 [29:28<00:00, 13.92s/it]
+Total Train Loss:  tensor(405.2094, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  396.26576014927457
+Validation results improved
+Updating Model
+===============MODEL TRAINING===============
+[ MODEL LOADED ]
+=================== 0 FOLD=====================
+======= EPOCH 0.0 ========
+100%|██████████| 127/127 [29:19<00:00, 13.85s/it]
+Total Train Loss:  tensor(645.8828, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  374.9454781668527
+Validation results improved
+Updating Model
+======= EPOCH 1.0 ========
+100%|██████████| 127/127 [29:09<00:00, 13.77s/it]
+Total Train Loss:  tensor(384.6187, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  342.66109357561385
+Validation results improved
+Updating Model
+  0%|          | 0/127 [00:00<?, ?it/s]======= EPOCH 2.0 ========
+100%|██████████| 127/127 [29:14<00:00, 13.81s/it]
+Total Train Loss:  tensor(361.7113, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  327.812255859375
+Validation results improved
+Updating Model
+  0%|          | 0/127 [00:00<?, ?it/s]======= EPOCH 3.0 ========
+100%|██████████| 127/127 [29:13<00:00, 13.80s/it]
+Total Train Loss:  tensor(349.1511, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  334.31638881138394
+No improvement in Validation results
+======= EPOCH 4.0 ========
+100%|██████████| 127/127 [29:11<00:00, 13.79s/it]
+Total Train Loss:  tensor(341.4147, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  340.2606288364955
+No improvement in Validation results
+===============MODEL TRAINING===============
+[ MODEL LOADED ]
+=================== 0 FOLD=====================
+======= EPOCH 0.0 ========
+100%|██████████| 127/127 [28:17<00:00, 13.36s/it]
+Total Train Loss:  tensor(557.6596, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  439.8284912109375
+Validation results improved
+Updating Model
+======= EPOCH 1.0 ========
+100%|██████████| 127/127 [28:03<00:00, 13.25s/it]
+Total Train Loss:  tensor(340.7072, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  375.5224304199219
+Validation results improved
+Updating Model
+  0%|          | 0/127 [00:00<?, ?it/s]======= EPOCH 2.0 ========
+100%|██████████| 127/127 [28:02<00:00, 13.25s/it]
+Total Train Loss:  tensor(321.6653, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  361.61194283621654
+Validation results improved
+Updating Model
+======= EPOCH 3.0 ========
+100%|██████████| 127/127 [28:03<00:00, 13.25s/it]
+Total Train Loss:  tensor(317.4725, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  343.0546351841518
+Validation results improved
+Updating Model
+======= EPOCH 4.0 ========
+100%|██████████| 127/127 [28:05<00:00, 13.27s/it]
+Total Train Loss:  tensor(313.6757, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  331.6504342215402
+Validation results improved
+Updating Model
+
+Process finished with exit code 0
+
+"/home/hamed/PycharmProjects/FHIR Obesity/.venv/bin/python" /home/hamed/PycharmProjects/FHIR Obesity/main1.py
+===============MODEL TRAINING===============
+[ MODEL LOADED ]
+=================== 0 FOLD=====================
+======= EPOCH 0.0 ========
+100%|██████████| 127/127 [29:45<00:00, 14.06s/it]
+Total Train Loss:  tensor(565.1601, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  387.8182678222656
+Validation results improved
+Updating Model
+======= EPOCH 1.0 ========
+100%|██████████| 127/127 [29:48<00:00, 14.08s/it]
+Total Train Loss:  tensor(330.6193, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  377.9460187639509
+Validation results improved
+Updating Model
+  0%|          | 0/127 [00:00<?, ?it/s]======= EPOCH 2.0 ========
+100%|██████████| 127/127 [30:07<00:00, 14.23s/it]
+Total Train Loss:  tensor(314.7524, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  337.3355800083705
+Validation results improved
+Updating Model
+======= EPOCH 3.0 ========
+100%|██████████| 127/127 [29:53<00:00, 14.12s/it]
+Total Train Loss:  tensor(304.0217, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  335.0562046595982
+Validation results improved
+Updating Model
+  0%|          | 0/127 [00:00<?, ?it/s]======= EPOCH 4.0 ========
+100%|██████████| 127/127 [29:31<00:00, 13.95s/it]
+Total Train Loss:  tensor(297.5657, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  326.7455095563616
+Validation results improved
+Updating Model
+===============MODEL TRAINING===============
+[ MODEL LOADED ]
+=================== 0 FOLD=====================
+======= EPOCH 0.0 ========
+100%|██████████| 127/127 [29:43<00:00, 14.04s/it]
+Total Train Loss:  tensor(632.2487, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  449.88548496791293
+Validation results improved
+Updating Model
+  0%|          | 0/127 [00:00<?, ?it/s]======= EPOCH 1.0 ========
+100%|██████████| 127/127 [29:35<00:00, 13.98s/it]
+Total Train Loss:  tensor(342.6634, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  352.53489903041293
+Validation results improved
+Updating Model
+  0%|          | 0/127 [00:00<?, ?it/s]======= EPOCH 2.0 ========
+100%|██████████| 127/127 [29:42<00:00, 14.03s/it]
+Total Train Loss:  tensor(318.9364, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  318.76175362723217
+Validation results improved
+Updating Model
+  0%|          | 0/127 [00:00<?, ?it/s]======= EPOCH 3.0 ========
+100%|██████████| 127/127 [29:40<00:00, 14.02s/it]
+Total Train Loss:  tensor(301.2421, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  313.39071219308033
+Validation results improved
+Updating Model
+======= EPOCH 4.0 ========
+100%|██████████| 127/127 [29:36<00:00, 13.99s/it]
+Total Train Loss:  tensor(295.3215, device='cuda:0', grad_fn=<DivBackward0>)
+Total Val Loss:  303.6982901436942
+Validation results improved
+Updating Model
+===============MODEL TRAINING===============
+[ MODEL LOADED ]
+=================== 0 FOLD=====================
+======= EPOCH 0.0 ========
+  0%|          | 0/127 [00:13<?, ?it/s]
+Traceback (most recent call last):
+  File "/home/hamed/PycharmProjects/FHIR Obesity/main1.py", line 4, in <module>
+    DL_models('obsNew',True,490,33,23,i)
+  File "/home/hamed/PycharmProjects/FHIR Obesity/dl_train_sig_obs.py", line 53, in __init__
+    self.dl_train()
+  File "/home/hamed/PycharmProjects/FHIR Obesity/dl_train_sig_obs.py", line 130, in dl_train
+    output, prob, batch_loss = self.train_model(enc_feat, enc_len, enc_age, enc_demo, dec_feat,dec_labels, mask)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hamed/PycharmProjects/FHIR Obesity/dl_train_sig_obs.py", line 196, in train_model
+    idx = torch.nonzero(obs_mask[:, i + obs] > 0)
+                        ~~~~~~~~^^^^^^^^^^^^
+IndexError: index 8 is out of bounds for dimension 1 with size 8
+
+Process finished with exit code 1
+

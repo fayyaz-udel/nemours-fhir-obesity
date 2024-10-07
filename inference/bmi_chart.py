@@ -38,8 +38,12 @@ def plot_bmi_percentiles(age_list,bmi_list, sex):
         plt.annotate(percentile[1:]+"%", xy=(x_last, y_last), xytext=(x_last+0.1, y_last-0.15),
                      fontsize=10, color='black', ha='left')
 
+    # Plot all BMI data points
     plt.plot(age_list, bmi_list, 'o', color='#0D3F6B', markersize=10, alpha=0.75)
 
+    # Highlight the last three points in red
+    if len(age_list) >= 3:
+        plt.plot(age_list[-3:], bmi_list[-3:], 'o', color='red', markersize=10, alpha=0.75)
     plt.xlabel('Age')
     plt.ylabel('BMI')
     plt.ylim(12, 26)
@@ -53,6 +57,6 @@ def plot_bmi_percentiles(age_list,bmi_list, sex):
     return image_base64
 
 if __name__ == '__main__':
-    al = [3, 4, 5, 6, 7, 8, 9]
-    bmil = [14, 15, 16, 17, 18, 19, 20]
-    plot_bmi_percentiles(al, bmil, sex=1)
+    al = [2.75, 4.1, 5, 6, 7]
+    bmil = [14.5, 16.1, 17.3, 19, 21.5]
+    print(plot_bmi_percentiles(al, bmil, sex=1))

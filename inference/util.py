@@ -666,5 +666,5 @@ def inference(data, net, obsrv_max, obs=1):
    
     preds = pd.DataFrame({'Age (yrs)': output_time_list, 'Probability of Obesity': output_prob_list}).to_html(
         index=False, justify='left', escape=False).replace('<table border="1" class="dataframe">', tbl_config)  # , 'Obesity': output_class_list
-    print(preds)
+    # print(preds)
     return {'preds': preds}

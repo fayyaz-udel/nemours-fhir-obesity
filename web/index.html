@@ -272,7 +272,7 @@
                     <!--                    <li>He has a <b>1 in 2</b> chance of developing an unhealthy weight by the <b> age of 7</b>.-->
                     <!--                    </li>-->
 
-                    <li>Healthy lifestyle changes can help your child  maintain a healthy weight and we have some
+                    <li>Healthy lifestyle changes can help your child maintain a healthy weight and we have some
                         great resources to share!
                     </li>
                 </ul>
@@ -453,15 +453,63 @@
     }
 
 
-    const queryString = window.location.search;
-    const urlParams = new URLSearchParams(queryString);
-    const patId = urlParams.get('patient');
+    // const queryString = window.location.search;
+    // const urlParams = new URLSearchParams(queryString);
+    // const patId = urlParams.get('patient');
+    // fetchPatientData(patId);
+    //
+    // function fetchPatientData(patientId) {
+    //     // Construct the URL with the patient ID
+    //     const url = `http://localhost:3000/Patient/${patientId}`;
+    //
+    //     fetch(url, {
+    //         method: 'GET',
+    //         headers: {
+    //             'Content-Type': 'application/json',
+    //             'Accept': 'application/json'
+    //         }
+    //     })
+    //         .then(response => {
+    //             if (!response.ok) {
+    //                 window.location.href = "/404.html";
+    //
+    //                 throw new Error('Network response was not ok');
+    //             }
+    //             return response.json();
+    //         })
+    //         .then(data => {
+    //             console.log('Patient data:', data);
+    //             if (data.name === "404") {
+    //                 window.location.href = "/404.html";
+    //             } else {
+    //                 // Update the page with the data if the name is not "404"
+    //                 document.getElementById("result").innerHTML = data['result'];
+    //                 document.getElementById("risk").innerHTML = data['risk'];
+    //                 document.getElementById("name").innerHTML = data['name'];
+    //                 document.getElementById("dob").innerHTML = data['dob'];
+    //                 document.getElementById("pop3").innerHTML = data['pop3'];
+    //                 document.getElementById('plot').src = 'data:image/png;base64,' + data['img'];
+    //             }
+    //
+    //         })
+    //         .catch(error => {
+    //             console.error('There has been a problem with your fetch operation:', error);
+    //         });
+    // }
+    //
+    //
+    // window.onload = main(patId);
 
-    async function main(patId) {
-        get_demographic(patId).then(function (pt) {
-            get_meds(patId).then(function (med) {
-                get_conds(patId).then(function (cond) {
-                    get_obsrvs(patId).then(async function (obsrv) {
+
+    // const queryString = window.location.search;
+    // const urlParams = new URLSearchParams(queryString);
+    // const patId = urlParams.get('patient');
+
+    async function main() {
+        get_demographic().then(function (pt) {
+            get_meds().then(function (med) {
+                get_conds().then(function (cond) {
+                    get_obsrvs().then(async function (obsrv) {
                         data = {
                             'patient': pt,
                             'medications': med,
@@ -482,8 +530,8 @@
             console.error('An error occurred:', error);
         });
     }
-window.onload = main(patId);
 
+    window.onload = main();
 </script>
 </body>
 </html>
