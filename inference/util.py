@@ -7,7 +7,7 @@ from config import config
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import pickle
 import math
-
+from mimic_model_sig_obs import EncDec2
 from fhirclient.models.condition import Condition
 from fhirclient.models.medicationrequest import MedicationRequest
 from fhirclient.models.observation import Observation
@@ -24,11 +24,11 @@ person_id = 820427166
 
 if config["DEBUG"]:
     data_folder = "./data/"
-    model_folder = "./saved_models/"
+    model_folder = "./new_saved_models_d/"
+    model_folder_reg = "./new_saved_models_reg_d/"
 else:
     data_folder = "/var/www/nemours-fhir-obesity/inference/data/"
     model_folder = "/var/www/nemours-fhir-obesity/inference/saved_models/"
-
 
 
 def calculate_wfl_stage(height, weight, map_dict, sex):
@@ -245,8 +245,7 @@ def extract_demo_data(data, map_dict):
         race = data["patient"].extension[0].extension[0].valueCoding.display
     else:
         eth, race = 'NI', 'NI'
-        
-        
+
     sex = data["patient"].gender.capitalize()
     payer = 'Medicaid/sCHIP'  # TODO
     coi = 'COI_2'  # TODO
@@ -470,13 +469,34 @@ def determine_observ_predict_windows(prrocessed_data):
     return {"obser_max": obser_max}
 
 
+def return_model(path, linear_size, time, has_med=False):
+    device = torch.device('cpu')
+    feat_vocab_size = 490
+    age_vocab_size = 33
+    demo_vocab_size = 23
+    embed_size = 256
+    rnn_size = 512  # FIXED
+    batch_size = 200
+    latent_size = 256  # FIXED
+    model = EncDec2(device, feat_vocab_size, age_vocab_size, demo_vocab_size, embed_size, rnn_size, batch_size,
+                    latent_size, time, linear_size, has_med)
+    model.load_state_dict(torch.load(path, map_location=device, weights_only=True))
+    return model
+
+
 def load_models():
     models = {}
-    models[2] = torch.load(model_folder + 'obsNew_0.tar', map_location='cpu')
-    models[3] = torch.load(model_folder + 'obsNew_1.tar', map_location='cpu')
-    models[4] = torch.load(model_folder + 'obsNew_2.tar', map_location='cpu')
-    models[5] = torch.load(model_folder + 'obsNew_3.tar', map_location='cpu')
-    models[6] = torch.load(model_folder + 'obsNew_4.tar', map_location='cpu')
+
+    models[2] = [return_model(model_folder + 'obsNew_0.tar', [1664, 256], 8),
+                 return_model(model_folder_reg + 'obsNew_0.tar', [2688, 512], 4, has_med=True)]
+    models[3] = [return_model(model_folder + 'obsNew_1.tar', [1920, 256], 7),
+                 return_model(model_folder_reg + 'obsNew_1.tar', [2688, 512], 4, has_med=True)]
+    models[4] = [return_model(model_folder + 'obsNew_2.tar', [2176, 256], 6),
+                 return_model(model_folder_reg + 'obsNew_2.tar', [2688, 512], 4, has_med=True)]
+    models[5] = [return_model(model_folder + 'obsNew_3.tar', [2432, 256], 5),
+                 return_model(model_folder_reg + 'obsNew_3.tar', [2688, 512], 4, has_med=True)]
+    models[6] = [return_model(model_folder + 'obsNew_4.tar', [2688, 512], 4, has_med=True),
+                 return_model(model_folder_reg + 'obsNew_4.tar', [2688, 512], 4, has_med=True)]
 
     return models
 
@@ -499,7 +519,7 @@ def extract_ehr_history(prrocessed_data, age_in_month):
     out_df.rename(columns={'display': 'Title', 'age': 'Age (months)', 'code': 'Code'}, inplace=True)
 
     out_df = out_df[['Title']]  # , 'Code', 'feat_dict', , 'value', 'unit'
-    
+
     out_str = ""
     for i in out_df['Title'].tolist():
         out_str += "<li>" + i + "</li>"
@@ -517,14 +537,14 @@ def extract_anthropometric_data(data, smax):
 
     bmi = observation_df[observation_df['code'] == '39156-5'][['age', 'value']]
     bmi['show'] = False
-    #for i in range(0, smax * 12, 6):
+    # for i in range(0, smax * 12, 6):
     #    if i not in bmi['age'].values:
     #        bmi = pd.concat([bmi, pd.DataFrame([{'age': i, 'value': None, 'show': True}])], ignore_index=True)
     #    else:
     #        bmi.loc[bmi['age'] == i, 'show'] = True
     bmi = bmi.sort_values(by=['age'])
     # bmi.interpolate(method='linear', limit_area='inside', inplace=True)
-    #bmi = bmi[bmi['show'] == True]
+    # bmi = bmi[bmi['show'] == True]
     bmi['value'].replace({None: 'No Data'}, inplace=True)
     bmi = bmi.replace({np.nan: None})
 
@@ -606,7 +626,7 @@ def decXY(data):
     return dec_feat, mask
 
 
-def inference(data, net, obsrv_max, obs=1):
+def inference(data, net, obsrv_max, obs=1, return_list=False):
     net.eval()
 
     enc_feat, enc_len, enc_age, enc_demo = encXY(data)
@@ -643,15 +663,17 @@ def inference(data, net, obsrv_max, obs=1):
         else:
             output_class_list.append('Yes')
 
-        chance = format(round(prob[i][:, 1].data.cpu().numpy()[0]*100,0))
-        output_prob_list.append('<div class="w3-container w3-blue w3-round-large" style="width:{}%;padding: 2px; margin: 1px;">{}%</div>'.format(chance, chance))
-        #output_prob_list.append(round(prob[i][:, 1].data.cpu().numpy()[0], 2)*100)
+        chance = format(round(prob[i][:, 1].data.cpu().numpy()[0] * 100, 0))
+        output_prob_list.append(
+            '<div class="w3-container w3-blue w3-round-large" style="width:{}%;padding: 2px; margin: 1px;">{}%</div>'.format(
+                chance, chance))
+        # output_prob_list.append(round(prob[i][:, 1].data.cpu().numpy()[0], 2)*100)
         output_time_list.append(obsrv_max + i + 1)
     ########################################################################
     # for i in range(0, len(prob) - 1):  # time
     #     print(prob[i][:, 1].data.cpu().numpy())[0]  # prob of class 1 (obesity) ---- [0] is for the first patient
     ########################################################################
-   
+
     tbl_config = """
     <table border="1" class="dataframe" style="width: 100%">
     <colgroup>
@@ -660,11 +682,10 @@ def inference(data, net, obsrv_max, obs=1):
     </colgroup>
 
     """
-   
-   
-   
-   
-    preds = pd.DataFrame({'Age (yrs)': output_time_list, 'Probability of Obesity': output_prob_list}).to_html(
-        index=False, justify='left', escape=False).replace('<table border="1" class="dataframe">', tbl_config)  # , 'Obesity': output_class_list
-    # print(preds)
-    return {'preds': preds}
+    if return_list:
+        return output_time_list, output_prob_list
+    else:
+        preds = pd.DataFrame({'Age (yrs)': output_time_list, 'Probability of Obesity': output_prob_list}).to_html(
+            index=False, justify='left', escape=False).replace('<table border="1" class="dataframe">',
+                                                               tbl_config)  # , 'Obesity': output_class_list
+        return {'preds': preds}

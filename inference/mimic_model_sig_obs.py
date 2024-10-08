@@ -1,5 +1,5 @@
 import importlib
-
+import torch.nn as nn
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -13,10 +13,10 @@ from parameters import *
 
 
 class EncDec2(nn.Module):
-    def __init__(self, device, feat_vocab_size, age_vocab_size, demo_vocab_size, embed_size, rnn_size, batch_size):
-        super(EncDec2, self).__init__()
+    def __init__(self, device, feat_vocab_size, age_vocab_size, demo_vocab_size, embed_size, rnn_size, batch_size, latent_size, time, linear_size, has_med=False):
+        super().__init__()
         self.embed_size = embed_size
-        self.latent_size = args.latent_size
+        self.latent_size = latent_size
         self.rnn_size = rnn_size
         self.feat_vocab_size = feat_vocab_size
 
@@ -26,6 +26,9 @@ class EncDec2(nn.Module):
         self.batch_size = batch_size
         self.padding_idx = 0
         self.device = device
+        self.time = time
+        self.linear_size = linear_size
+        self.has_med = has_med
         self.build()
 
     def build(self):
@@ -39,7 +42,7 @@ class EncDec2(nn.Module):
         self.enc = Encoder2(self.device, self.feat_vocab_size, self.age_vocab_size, self.embed_size, self.rnn_size,
                             self.batch_size)
         self.dec = Decoder2(self.device, self.feat_vocab_size, self.age_vocab_size, self.embed_size, self.rnn_size,
-                            self.emb_feat, self.batch_size)
+                            self.emb_feat, self.batch_size, self.latent_size, self.time, self.linear_size, self.has_med)
 
     def forward(self, visualize_embed, find_contri, enc_feat, enc_len, enc_age, enc_demo, dec_feat):
         if visualize_embed:
@@ -69,11 +72,11 @@ class EncDec2(nn.Module):
 
         disc_input = torch.stack(disc_input)
 
-        disc_input = torch.reshape(disc_input, (args.time, -1, disc_input.shape[1]))
+        disc_input = torch.reshape(disc_input, (self.time, -1, disc_input.shape[1]))
 
         disc_input = disc_input.permute(1, 0, 2)
 
-        kl_input = torch.reshape(kl_input, (args.time, -1))
+        kl_input = torch.reshape(kl_input, (self.time, -1))
         kl_input = kl_input.permute(1, 0)
 
         if find_contri:
@@ -131,7 +134,7 @@ class Encoder2(nn.Module):
 
 
 class Decoder2(nn.Module):
-    def __init__(self, device, feat_vocab_size, age_vocab_size, embed_size, rnn_size, emb_feat, batch_size):
+    def __init__(self, device, feat_vocab_size, age_vocab_size, embed_size, rnn_size, emb_feat, batch_size, latent_size, time, linear_size, has_med=False):
         super(Decoder2, self).__init__()
         self.embed_size = embed_size
 
@@ -143,17 +146,21 @@ class Decoder2(nn.Module):
         self.padding_idx = 0
         self.device = device
         self.emb_feat = emb_feat
+        self.latent_size = latent_size
+        self.time = time
+        self.linear_size = linear_size
+        self.has_med = has_med
         self.build()
 
     def build(self):
 
-        self.linears = nn.ModuleList([nn.Linear(
-            (2 * self.rnn_size) + 5 * int(self.embed_size / 2) + 4 * int(self.embed_size), 2 * (args.latent_size)) for i
-            in range(args.time)])
-        self.linearsMed = nn.ModuleList([nn.Linear(2 * (args.latent_size), args.latent_size) for i in range(args.time)])
-        self.linearsLast = nn.ModuleList([nn.Linear(args.latent_size, 1) for i in range(args.time)])
+        self.linears = nn.ModuleList([nn.Linear(self.linear_size[0], self.linear_size[1]) for i in range(self.time)])
+        if self.has_med:
+            self.linearsMed = nn.ModuleList([nn.Linear(2 * (self.latent_size), self.latent_size) for i in range(self.time)]
+                                           )
+        self.linearsLast = nn.ModuleList([nn.Linear(self.latent_size, 1) for i in range(self.time)])
 
-        self.leaky = nn.ModuleList([nn.LeakyReLU(0.1) for i in range(args.time)])
+        self.leaky = nn.ModuleList([nn.LeakyReLU(0.1) for i in range(self.time)])
 
         self.drop = nn.Dropout(p=0.2)
 
@@ -164,7 +171,7 @@ class Decoder2(nn.Module):
         kl_input = []
         disc_input = []
         dec_prob = []
-        for t in range(args.time):
+        for t in range(self.time):
 
             a = self.attn(encoder_outputs)
             if (find_contri) and (t == 2):
@@ -184,7 +191,7 @@ class Decoder2(nn.Module):
 
             bmi_h = self.linears[t](reg_input)
             bmi_h = self.leaky[t](bmi_h)
-            if hasattr(self, "linearsMed"):
+            if self.has_med:
                 bmi_h = self.linearsMed[t](bmi_h)
             bmi_h = self.linearsLast[t](bmi_h)
             bmi_prob = torch.sigmoid(bmi_h)
@@ -235,7 +242,7 @@ class FeatEmbed(nn.Module):
         self.embed_size = embed_size
         self.feat_vocab_size = feat_vocab_size
         self.padding_idx = 0
-        self.device = device
+        self.device = torch.device('cpu')
         self.build()
 
     def build(self):

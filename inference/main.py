@@ -3110,10 +3110,12 @@ def index():
     obser_pred_wins = determine_observ_predict_windows(prrocessed_data)  # Determine observation and prediction windows
     represantation_data = extract_representations(prrocessed_data, map_dict, obser_pred_wins)
 
-    net = models.get(obser_pred_wins["obser_max"], None)
+    net = models.get(obser_pred_wins["obser_max"], None)[0]
+    net_reg = models.get(obser_pred_wins["obser_max"], None)[1]
     if net is None:
         inference_data = {'preds': "No model available to predict for patients at this age."}
     else:
+        reg_data = inference(represantation_data, net_reg, obser_pred_wins["obser_max"])
         inference_data = inference(represantation_data, net, obser_pred_wins["obser_max"])
 
     anthropometric_data = extract_anthropometric_data(prrocessed_data, obser_pred_wins["obser_max"]) # BMI during the ages
