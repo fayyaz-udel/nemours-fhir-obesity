@@ -7,7 +7,7 @@ from config import config
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import pickle
 import math
-from mimic_model_sig_obs import EncDec2
+from model import EncDec2
 from fhirclient.models.condition import Condition
 from fhirclient.models.medicationrequest import MedicationRequest
 from fhirclient.models.observation import Observation
@@ -16,7 +16,7 @@ from datetime import date
 import pandas as pd
 import importlib
 import torch
-import mimic_model_sig_obs as model
+import model as model
 
 importlib.reload(model)
 

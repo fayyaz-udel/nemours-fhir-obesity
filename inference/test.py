@@ -3,7 +3,7 @@ import importlib
 import pandas as pd
 import torch
 
-import mimic_model_sig_obs as model
+import model as model
 import parameters
 from inference.util import inference
 
