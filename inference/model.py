@@ -245,7 +245,7 @@ class FeatEmbed(nn.Module):
         self.embed_size = embed_size
         self.feat_vocab_size = feat_vocab_size
         self.padding_idx = 0
-        self.device = self.device
+        self.device = device
         self.build()
 
     def build(self):
