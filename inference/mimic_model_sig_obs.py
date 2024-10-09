@@ -6,29 +6,26 @@ import torch.nn.functional as F
 from torch import nn
 from torch.autograd import *
 
-import parameters
-
-importlib.reload(parameters)
-from parameters import *
-
 
 class EncDec2(nn.Module):
-    def __init__(self, device, feat_vocab_size, age_vocab_size, demo_vocab_size, embed_size, rnn_size, batch_size, latent_size, time, linear_size, has_med=False):
+    def __init__(self, model_config):
         super().__init__()
-        self.embed_size = embed_size
-        self.latent_size = latent_size
-        self.rnn_size = rnn_size
-        self.feat_vocab_size = feat_vocab_size
+        self.embed_size = model_config["embed_size"]
+        self.latent_size = model_config["latent_size"]
+        self.rnn_size = model_config["rnn_size"]
+        self.feat_vocab_size = model_config["feat_vocab_size"]
 
-        self.age_vocab_size = age_vocab_size
+        self.age_vocab_size = model_config["age_vocab_size"]
 
-        self.demo_vocab_size = demo_vocab_size
-        self.batch_size = batch_size
+        self.demo_vocab_size = model_config["demo_vocab_size"]
+        self.batch_size = model_config["batch_size"]
         self.padding_idx = 0
-        self.device = device
-        self.time = time
-        self.linear_size = linear_size
-        self.has_med = has_med
+        self.device = model_config["device"]
+        self.time = model_config["time"]
+        self.linear_size = model_config["linear_size"]
+        self.has_med = model_config["has_med"]
+        self.rnn_layers = model_config["rnn_layers"]
+        self.task = model_config["task"]
         self.build()
 
     def build(self):
@@ -40,9 +37,9 @@ class EncDec2(nn.Module):
         self.emb_demo = DemoEmbed(self.device, self.demo_vocab_size, self.embed_size, self.batch_size)
 
         self.enc = Encoder2(self.device, self.feat_vocab_size, self.age_vocab_size, self.embed_size, self.rnn_size,
-                            self.batch_size)
+                            self.batch_size, self.rnn_layers)
         self.dec = Decoder2(self.device, self.feat_vocab_size, self.age_vocab_size, self.embed_size, self.rnn_size,
-                            self.emb_feat, self.batch_size, self.latent_size, self.time, self.linear_size, self.has_med)
+                            self.emb_feat, self.batch_size, self.latent_size, self.time, self.linear_size, self.task, self.has_med)
 
     def forward(self, visualize_embed, find_contri, enc_feat, enc_len, enc_age, enc_demo, dec_feat):
         if visualize_embed:
@@ -86,7 +83,7 @@ class EncDec2(nn.Module):
 
 
 class Encoder2(nn.Module):
-    def __init__(self, device, feat_vocab_size, age_vocab_size, embed_size, rnn_size, batch_size):
+    def __init__(self, device, feat_vocab_size, age_vocab_size, embed_size, rnn_size, batch_size, rnn_layers):
         super(Encoder2, self).__init__()
         self.embed_size = embed_size
         self.rnn_size = rnn_size
@@ -96,10 +93,11 @@ class Encoder2(nn.Module):
 
         self.padding_idx = 0
         self.device = device
+        self.rnn_layers = rnn_layers
         self.build()
 
     def build(self):
-        self.rnn = nn.LSTM(input_size=self.embed_size * 2, hidden_size=self.rnn_size, num_layers=args.rnnLayers,
+        self.rnn = nn.LSTM(input_size=self.embed_size * 2, hidden_size=self.rnn_size, num_layers=self.rnn_layers,
                            batch_first=True)
         self.drop = nn.Dropout(p=0.2)
 
@@ -124,8 +122,8 @@ class Encoder2(nn.Module):
         return code_output, code_h_n, code_c_n
 
     def init_hidden(self, batch_size):
-        h = torch.zeros(args.rnnLayers, batch_size, self.rnn_size)
-        c = torch.zeros(args.rnnLayers, batch_size, self.rnn_size)
+        h = torch.zeros(self.rnn_layers, batch_size, self.rnn_size)
+        c = torch.zeros(self.rnn_layers, batch_size, self.rnn_size)
 
         h = Variable(h)
         c = Variable(c)
@@ -134,7 +132,7 @@ class Encoder2(nn.Module):
 
 
 class Decoder2(nn.Module):
-    def __init__(self, device, feat_vocab_size, age_vocab_size, embed_size, rnn_size, emb_feat, batch_size, latent_size, time, linear_size, has_med=False):
+    def __init__(self, device, feat_vocab_size, age_vocab_size, embed_size, rnn_size, emb_feat, batch_size, latent_size, time, linear_size, task, has_med=False):
         super(Decoder2, self).__init__()
         self.embed_size = embed_size
 
@@ -149,6 +147,7 @@ class Decoder2(nn.Module):
         self.latent_size = latent_size
         self.time = time
         self.linear_size = linear_size
+        self.task = task
         self.has_med = has_med
         self.build()
 
@@ -194,7 +193,11 @@ class Decoder2(nn.Module):
             if self.has_med:
                 bmi_h = self.linearsMed[t](bmi_h)
             bmi_h = self.linearsLast[t](bmi_h)
-            bmi_prob = torch.sigmoid(bmi_h)
+            if self.task == 'classification':
+                bmi_prob = torch.sigmoid(bmi_h)
+            elif self.task == 'regression':
+                bmi_prob = torch.relu(bmi_h)
+
             bmi_prob_non = (1 - bmi_prob[:, 0]).unsqueeze(1)
             bmi_prob = torch.cat((bmi_prob_non, bmi_prob), axis=1)
 

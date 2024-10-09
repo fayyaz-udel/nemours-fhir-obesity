@@ -470,17 +470,23 @@ def determine_observ_predict_windows(prrocessed_data):
 
 
 def return_model(path, linear_size, time, has_med=False):
-    device = torch.device('cpu')
-    feat_vocab_size = 490
-    age_vocab_size = 33
-    demo_vocab_size = 23
-    embed_size = 256
-    rnn_size = 512  # FIXED
-    batch_size = 200
-    latent_size = 256  # FIXED
-    model = EncDec2(device, feat_vocab_size, age_vocab_size, demo_vocab_size, embed_size, rnn_size, batch_size,
-                    latent_size, time, linear_size, has_med)
-    model.load_state_dict(torch.load(path, map_location=device, weights_only=True))
+    model_config = {
+        "device": torch.device('cpu'),
+        "feat_vocab_size": 490,
+        "age_vocab_size": 33,
+        "demo_vocab_size": 23,
+        "embed_size": 256,
+        "rnn_size": 512,
+        "batch_size": 200,
+        "latent_size": 256,
+        "time": time,
+        "linear_size": linear_size,
+        "has_med": has_med,
+        "rnn_layers": 2,
+        "task": "classification", # "regression"
+    }
+    model = EncDec2(model_config)
+    model.load_state_dict(torch.load(path, map_location=model_config["device"], weights_only=True))
     return model
 
 

@@ -3115,7 +3115,7 @@ def index():
     if net is None:
         inference_data = {'preds': "No model available to predict for patients at this age."}
     else:
-        reg_data = inference(represantation_data, net_reg, obser_pred_wins["obser_max"])
+        # reg_data = inference(represantation_data, net_reg, obser_pred_wins["obser_max"])
         inference_data = inference(represantation_data, net, obser_pred_wins["obser_max"])
 
     anthropometric_data = extract_anthropometric_data(prrocessed_data, obser_pred_wins["obser_max"]) # BMI during the ages
