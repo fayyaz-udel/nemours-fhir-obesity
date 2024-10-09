@@ -220,7 +220,7 @@ class Decoder2(nn.Module):
 
         contri = contri[:attn.shape[0], :attn.shape[1], :]
         attn = attn.unsqueeze(2)
-        attn = attn.to('cpu')
+        attn = attn.to(self.device)
         contri = contri.type(torch.FloatTensor)
         contri = torch.cat((contri, attn), 2)
         contri = contri.type(torch.FloatTensor)
@@ -245,7 +245,7 @@ class FeatEmbed(nn.Module):
         self.embed_size = embed_size
         self.feat_vocab_size = feat_vocab_size
         self.padding_idx = 0
-        self.device = torch.device('cpu')
+        self.device = self.device
         self.build()
 
     def build(self):
